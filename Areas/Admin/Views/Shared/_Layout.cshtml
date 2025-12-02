@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Panel</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js Collapse Plugin (must load before Alpine core) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Alpine.js for interactive components -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        // Suppress Tailwind CDN warning in development
+        const originalWarn = console.warn;
+        console.warn = function(msg) {
+            if (msg && msg.includes && msg.includes('cdn.tailwindcss.com')) {
+                return; // Suppress Tailwind CDN warning
+            }
+            originalWarn.apply(console, arguments);
+        };
+        
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecf3ff',
+                            100: '#dde9ff',
+                            200: '#c2d6ff',
+                            300: '#9cb9ff',
+                            400: '#7592ff',
+                            500: '#465fff',
+                            600: '#3641f5',
+                        },
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            300: '#d1d5db',
+                            400: '#9ca3af',
+                            500: '#6b7280',
+                            600: '#4b5563',
+                            700: '#374151',
+                            800: '#1f2937',
+                            900: '#111827',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-950" x-data="{ 
+    sidebarOpen: false, 
+    sidebarExpanded: true,
+    darkMode: false,
+    userMenuOpen: false,
+    init() {
+        this.darkMode = localStorage.getItem('darkMode') === 'true';
+        if (this.darkMode) {
+            document.documentElement.classList.add('dark');
+        }
+    },
+    toggleDark() {
+        this.darkMode = !this.darkMode;
+        localStorage.setItem('darkMode', this.darkMode);
+        document.documentElement.classList.toggle('dark');
+    }
+}">
+    
+    <div class="min-h-screen xl:flex">
+        <!-- Sidebar -->
+        <aside 
+            class="fixed top-0 left-0 z-50 flex flex-col h-screen px-5 transition-all duration-300 ease-in-out bg-white border-r border-gray-200 dark:bg-gray-900 dark:border-gray-800"
+            :class="[
+                sidebarExpanded ? 'lg:w-[290px]' : 'lg:w-[290px]',
+                sidebarOpen ? 'translate-x-0 w-[290px]' : '-translate-x-full lg:translate-x-0'
+            ]"
+        >
+            <!-- Logo -->
+            <div class="flex py-8">
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="flex items-center">
+                    <span class="text-2xl font-bold text-brand-600">
+                        <i class="fas fa-store mr-2"></i>
+                        <span x-show="sidebarExpanded || sidebarOpen">Admin Panel</span>
+                    </span>
+                </a>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
+                <div class="flex flex-col gap-4 mb-6">
+                    <!-- Main Menu -->
+                    <div>
+                        <h2 class="mb-4 text-xs font-medium leading-5 text-gray-400 uppercase">
+                            MENU
+                        </h2>
+                        <ul class="flex flex-col gap-2">
+                            <li>
+                                <a asp-area="Admin" asp-controller="Home" asp-action="Index" 
+                                   class="flex items-center gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-brand-50 hover:text-brand-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-brand-400">
+                                    <i class="w-5 text-center fas fa-home"></i>
+                                    <span>Trang chủ</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" 
+                                   class="flex items-center gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-brand-50 hover:text-brand-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-brand-400">
+                                    <i class="w-5 text-center fas fa-th-large"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- E-commerce -->
+                    <div>
+                        <h2 class="mb-4 text-xs font-medium leading-5 text-gray-400 uppercase">
+                            E-COMMERCE
+                        </h2>
+                        <ul class="flex flex-col gap-2">
+                            <!-- Products with submenu -->
+                            <li x-data="{ open: false }">
+                                <button type="button" 
+                                   @@click="open = !open"
+                                   class="flex items-center justify-between w-full gap-3 px-4 py-3 text-left text-gray-700 transition-colors rounded-lg hover:bg-brand-50 hover:text-brand-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-brand-400">
+                                    <span class="flex items-center gap-3 pointer-events-none">
+                                        <i class="w-5 text-center fas fa-box"></i>
+                                        Sản phẩm
+                                    </span>
+                                    <i class="fas fa-chevron-down transition-transform duration-200 pointer-events-none" :class="open && 'rotate-180'"></i>
+                                </button>
+                                <div x-show="open" 
+                                     x-transition
+                                     style="display: none;"
+                                     class="mt-2 space-y-1">
+                                    <a asp-area="Admin" asp-controller="Product" asp-action="Index" 
+                                       class="block pl-12 pr-4 py-2 text-sm text-gray-600 transition-colors rounded-lg hover:bg-gray-100 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-gray-800">
+                                        Danh sách
+                                    </a>
+                                    <a asp-area="Admin" asp-controller="Product" asp-action="Create" 
+                                       class="block pl-12 pr-4 py-2 text-sm text-gray-600 transition-colors rounded-lg hover:bg-gray-100 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-gray-800">
+                                        Thêm mới
+                                    </a>
+                                    <a asp-area="Admin" asp-controller="Variant" asp-action="Index" 
+                                       class="block pl-12 pr-4 py-2 text-sm text-gray-600 transition-colors rounded-lg hover:bg-gray-100 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-gray-800">
+                                        Biến thể
+                                    </a>
+                                    <a asp-area="Admin" asp-controller="AttributeType" asp-action="Index" 
+                                       class="block pl-12 pr-4 py-2 text-sm text-gray-600 transition-colors rounded-lg hover:bg-gray-100 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-gray-800">
+                                        Loại thuộc tính
+                                    </a>
+                                </div>
+                            </li>
+
+                            <li>
+                                <a asp-area="Admin" asp-controller="Categories" asp-action="Index" 
+                                   class="flex items-center gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-brand-50 hover:text-brand-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-brand-400">
+                                    <i class="w-5 text-center fas fa-tags"></i>
+                                    <span>Danh mục</span>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a asp-area="Admin" asp-controller="Supplier" asp-action="Index" 
+                                   class="flex items-center gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-brand-50 hover:text-brand-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-brand-400">
+                                    <i class="w-5 text-center fas fa-truck"></i>
+                                    <span>Nhà cung cấp</span>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a asp-area="Admin" asp-controller="Invoice" asp-action="Index" 
+                                   class="flex items-center gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-brand-50 hover:text-brand-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-brand-400">
+                                    <i class="w-5 text-center fas fa-file-invoice"></i>
+                                    <span>Đơn hàng</span>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a asp-area="Admin" asp-controller="Invoice" asp-action="CancelRequests" 
+                                   class="flex items-center gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-brand-50 hover:text-brand-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-brand-400">
+                                    <i class="w-5 text-center fas fa-ban"></i>
+                                    <span>Yêu cầu hủy</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Sidebar Footer -->
+            <div class="mt-auto border-t border-gray-200 dark:border-gray-800 pt-4 pb-4">
+                <button type="button" @@click="sidebarExpanded = !sidebarExpanded" 
+                        class="hidden lg:flex items-center justify-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+                    <i class="fas" :class="sidebarExpanded ? 'fa-angles-left' : 'fa-angles-right'"></i>
+                    <span x-show="sidebarExpanded">Thu gọn</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 transition-all duration-300 ease-in-out" 
+             :class="sidebarExpanded ? 'lg:ml-[290px]' : 'lg:ml-[290px]'">
+            
+            <!-- Header -->
+            <header class="sticky top-0 z-30 flex w-full bg-white border-b border-gray-200 dark:bg-gray-900 dark:border-gray-800">
+                <div class="flex items-center justify-between w-full px-4 py-4 lg:px-6">
+                    <div class="flex items-center gap-4">
+                        <!-- Mobile menu toggle -->
+                        <button type="button" @@click="sidebarOpen = !sidebarOpen" 
+                                class="lg:hidden flex items-center justify-center w-10 h-10 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800">
+                            <i class="fas" :class="sidebarOpen ? 'fa-times' : 'fa-bars'"></i>
+                        </button>
+                        
+                        <h1 class="text-lg font-semibold text-gray-900 dark:text-white lg:text-xl">
+                            @ViewData["Title"]
+                        </h1>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <!-- Dark mode toggle -->
+                        <button type="button" @@click="toggleDark()" 
+                                class="flex items-center justify-center w-10 h-10 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800">
+                            <i class="fas" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
+                        </button>
+
+                        <!-- User menu -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button type="button" 
+                                    @@click="open = !open"
+                                    class="flex items-center gap-2 px-3 py-2 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+                                <div class="flex items-center justify-center w-8 h-8 bg-brand-100 rounded-full dark:bg-brand-900">
+                                    <i class="text-sm fas fa-user text-brand-600 dark:text-brand-400"></i>
+                                </div>
+                                <span class="hidden sm:block">@User.Identity?.Name</span>
+                                <i class="text-xs fas fa-chevron-down"></i>
+                            </button>
+
+                            <div x-show="open" 
+                                 @@click.away="open = false"
+                                 x-transition
+                                 style="display: none;"
+                                 class="absolute right-0 w-48 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700 z-50">
+                                <a asp-area="" asp-controller="Home" asp-action="Index" 
+                                   class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 rounded-t-lg">
+                                    <i class="fas fa-store"></i>
+                                    <span>Trang chủ</span>
+                                </a>
+                                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                    <button type="submit" 
+                                            class="flex items-center w-full gap-3 px-4 py-3 text-sm text-left text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded-b-lg">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        <span>Đăng xuất</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="p-4 mx-auto max-w-screen-2xl md:p-6">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="p-4 mb-4 text-green-800 bg-green-100 border border-green-200 rounded-lg dark:bg-green-900/20 dark:border-green-800 dark:text-green-400" role="alert">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle"></i>
+                            <span>@TempData["SuccessMessage"]</span>
+                        </div>
+                    </div>
+                }
+                
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="p-4 mb-4 text-red-800 bg-red-100 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800 dark:text-red-400" role="alert">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>@TempData["ErrorMessage"]</span>
+                        </div>
+                    </div>
+                }
+
+                @RenderBody()
+            </main>
+
+            <!-- Footer -->
+            <footer class="px-4 py-6 mx-auto max-w-screen-2xl md:px-6">
+                <p class="text-sm text-center text-gray-500 dark:text-gray-400">
+                    © @DateTime.Now.Year MyProject. All rights reserved.
+                </p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Mobile sidebar backdrop -->
+    <div x-show="sidebarOpen" 
+         x-cloak
+         @@click="sidebarOpen = false"
+         x-transition:enter="transition-opacity ease-linear duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-linear duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-40 bg-black/50 lg:hidden"></div>
+
+    <!-- jQuery (must load first) -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

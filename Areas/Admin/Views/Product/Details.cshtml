@@ -1,0 +1,185 @@
+@model MyProject.Models.Shared.Product
+
+@{
+    ViewData["Title"] = Model.ProductName;
+}
+
+<div class="mb-6">
+    <a asp-action="Index" class="inline-flex items-center gap-2 text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+        <i class="fas fa-arrow-left"></i>
+        <span>Quay lại danh sách</span>
+    </a>
+</div>
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <!-- Product Images -->
+    <div class="lg:col-span-1">
+        <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+            @if (Model.Images?.Any() == true)
+            {
+                <div class="mb-4">
+                    <img src="@Model.Images.First().ImageUrl" alt="@Model.ProductName" 
+                         class="object-cover w-full rounded-lg aspect-square">
+                </div>
+                @if (Model.Images.Count > 1)
+                {
+                    <div class="grid grid-cols-4 gap-2">
+                        @foreach (var image in Model.Images.Skip(1).Take(4))
+                        {
+                            <img src="@image.ImageUrl" alt="@Model.ProductName" 
+                                 class="object-cover w-full border border-gray-200 rounded-lg cursor-pointer aspect-square hover:border-brand-500 dark:border-gray-700">
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="flex items-center justify-center bg-gray-200 rounded-lg aspect-square dark:bg-gray-700">
+                    <i class="text-6xl text-gray-400 fas fa-image"></i>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Product Details -->
+    <div class="lg:col-span-2">
+        <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">@Model.ProductName</h1>
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Mã sản phẩm: #@Model.ProductId</p>
+                </div>
+                <div class="flex gap-2">
+                    <a asp-action="Edit" asp-route-id="@Model.ProductId" 
+                       class="flex items-center gap-2 px-4 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                        <i class="fas fa-edit"></i>
+                        <span>Sửa</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Basic Info -->
+            <div class="pb-6 mb-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Danh mục</p>
+                        <p class="mt-1 font-medium text-gray-900 dark:text-white">
+                            <span class="px-3 py-1 text-sm text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900/20 dark:text-blue-400">
+                                @(Model.Category?.CategoryName ?? "N/A")
+                            </span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Nhà cung cấp</p>
+                        <p class="mt-1 font-medium text-gray-900 dark:text-white">
+                            @(Model.Supplier?.SupplierName ?? "N/A")
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Tổng biến thể</p>
+                        <p class="mt-1 font-medium text-gray-900 dark:text-white">
+                            @(Model.Variants?.Count ?? 0) biến thể
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Tồn kho</p>
+                        @{
+                            var totalStock = Model.Variants?.Sum(v => v.Quanlity) ?? 0;
+                            var stockClass = totalStock == 0 ? "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400" :
+                                            totalStock <= 10 ? "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400" :
+                                            "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
+                        }
+                        <p class="mt-1">
+                            <span class="px-3 py-1 text-sm font-medium rounded-full @stockClass">
+                                @totalStock đơn vị
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <div class="mb-6">
+                    <h2 class="mb-3 text-lg font-semibold text-gray-900 dark:text-white">Mô tả sản phẩm</h2>
+                    <p class="text-gray-600 dark:text-gray-400">@Model.Description</p>
+                </div>
+            }
+
+            <!-- Variants -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Biến thể sản phẩm</h2>
+                    <a asp-controller="Variant" asp-action="Index" asp-route-productId="@Model.ProductId"
+                       class="flex items-center gap-2 px-4 py-2 text-sm text-white transition-colors rounded-lg bg-purple-600 hover:bg-purple-700">
+                        <i class="fas fa-list"></i>
+                        <span>Quản lý biến thể</span>
+                    </a>
+                </div>
+
+                @if (Model.Variants?.Any() == true)
+                {
+                    <div class="overflow-hidden border border-gray-200 rounded-lg dark:border-gray-700">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 dark:bg-gray-800">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-gray-700 dark:text-gray-300">Tên biến thể</th>
+                                    <th class="px-4 py-3 text-left text-gray-700 dark:text-gray-300">Giá</th>
+                                    <th class="px-4 py-3 text-left text-gray-700 dark:text-gray-300">Tồn kho</th>
+                                    <th class="px-4 py-3 text-left text-gray-700 dark:text-gray-300">Thuộc tính</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                @foreach (var variant in Model.Variants)
+                                {
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                        <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">@variant.VariantName</td>
+                                        <td class="px-4 py-3 text-gray-700 dark:text-gray-300">@variant.Price.ToString("N0") ₫</td>
+                                        <td class="px-4 py-3">
+                                            @{
+                                                var vStockClass = variant.Quanlity == 0 ? "text-red-600 dark:text-red-400" :
+                                                                 variant.Quanlity <= 10 ? "text-orange-600 dark:text-orange-400" :
+                                                                 "text-green-600 dark:text-green-400";
+                                            }
+                                            <span class="font-medium @vStockClass">@variant.Quanlity</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            @if (variant.VariantAttributes?.Any() == true)
+                                            {
+                                                <div class="flex flex-wrap gap-1">
+                                                    @foreach (var attr in variant.VariantAttributes)
+                                                    {
+                                                        <span class="px-2 py-1 text-xs text-gray-700 bg-gray-100 rounded dark:bg-gray-700 dark:text-gray-300">
+                                                            @(attr.AttributeType?.Name ?? "N/A"): @attr.Value
+                                                        </span>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-gray-400">Không có</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="flex flex-col items-center justify-center py-12 border border-gray-200 rounded-lg dark:border-gray-700">
+                        <i class="mb-3 text-4xl text-gray-300 fas fa-inbox dark:text-gray-600"></i>
+                        <p class="mb-4 text-gray-500 dark:text-gray-400">Chưa có biến thể nào</p>
+                        <a asp-controller="Variant" asp-action="Create" asp-route-productId="@Model.ProductId"
+                           class="flex items-center gap-2 px-4 py-2 text-sm text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                            <i class="fas fa-plus"></i>
+                            <span>Thêm biến thể</span>
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,60 @@
+@model MyProject.Models.Shared.Variant
+
+@{
+    ViewData["Title"] = "Xác nhận xóa";
+}
+
+<div class="max-w-2xl mx-auto">
+    <div class="p-4 mb-6 border-l-4 border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20">
+        <div class="flex items-start gap-3">
+            <i class="mt-0.5 text-red-600 fas fa-exclamation-triangle dark:text-red-400"></i>
+            <div class="flex-1">
+                <p class="font-medium text-red-800 dark:text-red-300">Cảnh báo!</p>
+                <p class="text-sm text-red-700 dark:text-red-400">Xóa biến thể sẽ không thể khôi phục. Tất cả dữ liệu liên quan (đơn hàng, giỏ hàng) sẽ bị ảnh hưởng.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="mb-6 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 mb-4 bg-red-100 rounded-full dark:bg-red-900/30">
+                <i class="text-2xl text-red-600 fas fa-exclamation-triangle dark:text-red-400"></i>
+            </div>
+            <h1 class="mb-2 text-2xl font-bold text-gray-900 dark:text-white">Xác nhận xóa biến thể</h1>
+            <p class="text-gray-500 dark:text-gray-400">Hành động này không thể hoàn tác!</p>
+        </div>
+
+        <div class="p-4 mb-6 border border-gray-200 rounded-lg dark:border-gray-700">
+            <dl class="space-y-2">
+                <div class="flex justify-between">
+                    <dt class="font-medium text-gray-700 dark:text-gray-300">Tên biến thể:</dt>
+                    <dd class="text-gray-900 dark:text-white">@Model.VariantName</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="font-medium text-gray-700 dark:text-gray-300">Giá:</dt>
+                    <dd class="font-semibold text-brand-600">@Model.Price.ToString("N0") đ</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="font-medium text-gray-700 dark:text-gray-300">Số lượng:</dt>
+                    <dd class="text-gray-900 dark:text-white">@Model.Quanlity</dd>
+                </div>
+            </dl>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="VariantId" />
+            <div class="flex gap-3">
+                <button type="submit" 
+                        class="flex-1 flex items-center justify-center gap-2 px-6 py-3 text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700">
+                    <i class="fas fa-trash"></i>
+                    <span>Xóa biến thể</span>
+                </button>
+                <a asp-action="Index" asp-route-productId="@Model.ProductId"
+                   class="flex-1 flex items-center justify-center gap-2 px-6 py-3 text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                    <i class="fas fa-times"></i>
+                    <span>Hủy</span>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

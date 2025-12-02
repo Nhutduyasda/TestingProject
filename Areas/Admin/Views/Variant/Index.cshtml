@@ -1,0 +1,271 @@
+@model IEnumerable<MyProject.Models.Shared.Variant>
+
+@{
+    ViewData["Title"] = "Quản lý biến thể";
+    var product = ViewBag.Product as MyProject.Models.Shared.Product;
+    var isProductSpecific = product != null;
+}
+
+<div class="mb-6">
+    <div class="flex items-center justify-between">
+        <div>
+            @if (isProductSpecific)
+            {
+                <a asp-controller="Product" asp-action="Index" class="inline-flex items-center gap-2 text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Quay lại danh sách sản phẩm</span>
+                </a>
+                <h1 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
+                    Biến thể của: @product!.ProductName
+                </h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Quản lý các biến thể (size, màu sắc, ...) của sản phẩm
+                </p>
+            }
+            else
+            {
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                    <i class="mr-2 fas fa-boxes"></i>
+                    Quản lý biến thể
+                </h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Quản lý tất cả các biến thể sản phẩm
+                </p>
+            }
+        </div>
+        @if (isProductSpecific)
+        {
+            <a asp-action="Create" asp-route-productId="@product!.ProductId" 
+               class="flex items-center gap-2 px-4 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                <i class="fas fa-plus"></i>
+                <span>Thêm biến thể</span>
+            </a>
+        }
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="p-4 mb-6 text-green-800 bg-green-100 border border-green-200 rounded-lg dark:bg-green-900/20 dark:border-green-800 dark:text-green-400">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+    @if (Model.Any())
+    {
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-800 dark:text-gray-400">
+                    <tr>
+                        @if (!isProductSpecific)
+                        {
+                            <th scope="col" class="px-6 py-3">Sản phẩm</th>
+                        }
+                        <th scope="col" class="px-6 py-3">Tên biến thể</th>
+                        <th scope="col" class="px-6 py-3">Thuộc tính</th>
+                        <th scope="col" class="px-6 py-3">Giá</th>
+                        <th scope="col" class="px-6 py-3">Số lượng</th>
+                        <th scope="col" class="px-6 py-3">Trạng thái</th>
+                        <th scope="col" class="px-6 py-3 text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var variant in Model)
+                    {
+                        <tr class="bg-white border-b dark:bg-gray-900 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                            @if (!isProductSpecific)
+                            {
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-gray-900 dark:text-white">@variant.Product?.ProductName</div>
+                                    <div class="text-xs text-gray-500">@variant.Product?.Category?.CategoryName</div>
+                                </td>
+                            }
+                            <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                                @variant.VariantName
+                            </td>
+                            <td class="px-6 py-4">
+                                @if (variant.VariantAttributes?.Any() == true)
+                                {
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach (var attr in variant.VariantAttributes)
+                                        {
+                                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded dark:bg-blue-900/30 dark:text-blue-300">
+                                                @attr.AttributeType?.Name: @attr.Value
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400">Không có</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 font-semibold text-brand-600">
+                                @variant.Price.ToString("N0") đ
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="@(variant.Quanlity > 10 ? "text-green-600" : variant.Quanlity > 0 ? "text-yellow-600" : "text-red-600") font-semibold">
+                                        @variant.Quanlity
+                                    </span>
+                                    <button onclick="updateStock(@variant.VariantId, @variant.Quanlity)" 
+                                            class="text-gray-400 transition-colors hover:text-brand-600">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                @if (variant.Quanlity > 10)
+                                {
+                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded dark:bg-green-900/30 dark:text-green-300">
+                                        <i class="mr-1 fas fa-check-circle"></i> Còn hàng
+                                    </span>
+                                }
+                                else if (variant.Quanlity > 0)
+                                {
+                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded dark:bg-yellow-900/30 dark:text-yellow-300">
+                                        <i class="mr-1 fas fa-exclamation-triangle"></i> Sắp hết
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded dark:bg-red-900/30 dark:text-red-300">
+                                        <i class="mr-1 fas fa-times-circle"></i> Hết hàng
+                                    </span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a asp-action="Details" asp-route-id="@variant.VariantId"
+                                       class="p-2 text-blue-600 transition-colors hover:text-blue-800 dark:text-blue-400">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@variant.VariantId"
+                                       class="p-2 text-yellow-600 transition-colors hover:text-yellow-800 dark:text-yellow-400">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@variant.VariantId"
+                                       class="p-2 text-red-600 transition-colors hover:text-red-800 dark:text-red-400">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="py-12 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-full bg-gray-100 dark:bg-gray-800">
+                <i class="text-2xl text-gray-400 fas fa-box-open"></i>
+            </div>
+            <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
+                @if (isProductSpecific)
+                {
+                    <text>Chưa có biến thể nào</text>
+                }
+                else
+                {
+                    <text>Chưa có biến thể nào trong hệ thống</text>
+                }
+            </h3>
+            <p class="mb-4 text-gray-500 dark:text-gray-400">
+                @if (isProductSpecific)
+                {
+                    <text>Thêm biến thể đầu tiên để quản lý tồn kho chi tiết hơn</text>
+                }
+                else
+                {
+                    <text>Biến thể sẽ xuất hiện ở đây sau khi bạn tạo chúng cho sản phẩm</text>
+                }
+            </p>
+            @if (isProductSpecific && product != null)
+            {
+                <a asp-action="Create" asp-route-productId="@product.ProductId"
+                   class="inline-flex items-center gap-2 px-4 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                    <i class="fas fa-plus"></i>
+                    <span>Thêm biến thể đầu tiên</span>
+                </a>
+            }
+            else
+            {
+                <a asp-controller="Product" asp-action="Index"
+                   class="inline-flex items-center gap-2 px-4 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Quay về danh sách sản phẩm</span>
+                </a>
+            }
+        </div>
+    }
+</div>
+
+<!-- Modal Update Stock -->
+<div id="stockModal" class="fixed inset-0 z-50 items-center justify-center hidden bg-black bg-opacity-50">
+    <div class="w-full max-w-md p-6 bg-white rounded-lg dark:bg-gray-900">
+        <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Cập nhật số lượng tồn kho</h3>
+        <form id="stockForm">
+            <input type="hidden" id="variantId">
+            <div class="mb-4">
+                <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Số lượng mới</label>
+                <input type="number" id="newQuantity" min="0" 
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+            </div>
+            <div class="flex gap-3">
+                <button type="submit" class="flex-1 px-4 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                    Cập nhật
+                </button>
+                <button type="button" onclick="closeStockModal()" class="flex-1 px-4 py-2 text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                    Hủy
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ModernValidationScripts");}
+    <script>
+        function updateStock(variantId, currentQuantity) {
+            document.getElementById('variantId').value = variantId;
+            document.getElementById('newQuantity').value = currentQuantity;
+            document.getElementById('stockModal').classList.remove('hidden');
+            document.getElementById('stockModal').classList.add('flex');
+        }
+
+        function closeStockModal() {
+            document.getElementById('stockModal').classList.add('hidden');
+            document.getElementById('stockModal').classList.remove('flex');
+        }
+
+        document.getElementById('stockForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const variantId = document.getElementById('variantId').value;
+            const quantity = document.getElementById('newQuantity').value;
+
+            try {
+                const response = await fetch('/Admin/Variant/UpdateStock', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ variantId: variantId, quantity: quantity })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert(result.message || 'Có lỗi xảy ra');
+                }
+            } catch (error) {
+                alert('Có lỗi xảy ra: ' + error.message);
+            }
+        });
+    </script>
+}

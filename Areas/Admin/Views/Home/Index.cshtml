@@ -1,0 +1,270 @@
+@{
+    ViewData["Title"] = "Trang chủ Admin";
+}
+
+<!-- Welcome Banner -->
+<div class="mb-8">
+    <div class="relative overflow-hidden bg-gradient-to-br from-brand-500 to-purple-600 rounded-2xl">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+        </div>
+        <div class="relative px-8 py-12 md:px-12">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-xl">
+                            <i class="text-3xl fas fa-store text-brand-600"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-white">Chào mừng trở lại, @User.Identity?.Name! 👋</h1>
+                            <p class="mt-1 text-brand-100">Quản lý hệ thống của bạn</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-brand-100">
+                        <i class="fas fa-calendar"></i>
+                        <span>@DateTime.Now.ToString("dddd, dd/MM/yyyy")</span>
+                        <span class="mx-2">•</span>
+                        <i class="fas fa-clock"></i>
+                        <span>@DateTime.Now.ToString("HH:mm")</span>
+                    </div>
+                </div>
+                <div class="hidden lg:block">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath fill='%23ffffff' opacity='0.2' d='M100 20c-44.2 0-80 35.8-80 80s35.8 80 80 80 80-35.8 80-80-35.8-80-80-80zm0 140c-33.1 0-60-26.9-60-60s26.9-60 60-60 60 26.9 60 60-26.9 60-60 60z'/%3E%3Ccircle fill='%23ffffff' opacity='0.3' cx='100' cy='100' r='40'/%3E%3C/svg%3E" alt="Welcome" class="w-32 h-32">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="grid grid-cols-1 gap-6 mb-8 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="p-6 transition-all bg-white border border-gray-200 rounded-xl hover:shadow-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                <i class="text-xl text-blue-600 fas fa-box dark:text-blue-400"></i>
+            </div>
+            <span class="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900/20 dark:text-blue-400">Sản phẩm</span>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">--</h3>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Tổng sản phẩm</p>
+        <a asp-area="Admin" asp-controller="Product" asp-action="Index" 
+           class="inline-flex items-center gap-2 mt-4 text-sm font-medium transition-colors text-brand-600 hover:text-brand-700 dark:text-brand-400">
+            Xem chi tiết <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="p-6 transition-all bg-white border border-gray-200 rounded-xl hover:shadow-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/20">
+                <i class="text-xl text-purple-600 fas fa-tags dark:text-purple-400"></i>
+            </div>
+            <span class="px-3 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full dark:bg-purple-900/20 dark:text-purple-400">Danh mục</span>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">--</h3>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Tổng danh mục</p>
+        <a asp-area="Admin" asp-controller="Categories" asp-action="Index" 
+           class="inline-flex items-center gap-2 mt-4 text-sm font-medium transition-colors text-brand-600 hover:text-brand-700 dark:text-brand-400">
+            Xem chi tiết <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="p-6 transition-all bg-white border border-gray-200 rounded-xl hover:shadow-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/20">
+                <i class="text-xl text-green-600 fas fa-file-invoice dark:text-green-400"></i>
+            </div>
+            <span class="px-3 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full dark:bg-green-900/20 dark:text-green-400">Đơn hàng</span>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">--</h3>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Tổng đơn hàng</p>
+        <a asp-area="Admin" asp-controller="Invoice" asp-action="Index" 
+           class="inline-flex items-center gap-2 mt-4 text-sm font-medium transition-colors text-brand-600 hover:text-brand-700 dark:text-brand-400">
+            Xem chi tiết <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="p-6 transition-all bg-white border border-gray-200 rounded-xl hover:shadow-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900/20">
+                <i class="text-xl text-orange-600 fas fa-truck dark:text-orange-400"></i>
+            </div>
+            <span class="px-3 py-1 text-xs font-medium text-orange-700 bg-orange-100 rounded-full dark:bg-orange-900/20 dark:text-orange-400">Nhà cung cấp</span>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">--</h3>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Tổng nhà cung cấp</p>
+        <a asp-area="Admin" asp-controller="Supplier" asp-action="Index" 
+           class="inline-flex items-center gap-2 mt-4 text-sm font-medium transition-colors text-brand-600 hover:text-brand-700 dark:text-brand-400">
+            Xem chi tiết <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="grid grid-cols-1 gap-6 mb-8 lg:grid-cols-2">
+    <!-- Left Column - Quick Actions -->
+    <div class="p-6 bg-white border border-gray-200 rounded-xl dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-brand-100 dark:bg-brand-900/20">
+                <i class="fas fa-bolt text-brand-600 dark:text-brand-400"></i>
+            </div>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Thao tác nhanh</h2>
+        </div>
+        <div class="space-y-3">
+            <a asp-area="Admin" asp-controller="Product" asp-action="Create" 
+               class="flex items-center gap-4 p-4 transition-colors border border-gray-200 rounded-lg hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                <div class="flex items-center justify-center flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                    <i class="text-blue-600 fas fa-plus dark:text-blue-400"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-gray-900 dark:text-white">Thêm sản phẩm mới</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Tạo sản phẩm mới trong hệ thống</p>
+                </div>
+                <i class="ml-auto text-gray-400 fas fa-chevron-right"></i>
+            </a>
+
+            <a asp-area="Admin" asp-controller="Categories" asp-action="Create" 
+               class="flex items-center gap-4 p-4 transition-colors border border-gray-200 rounded-lg hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                <div class="flex items-center justify-center flex-shrink-0 w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/20">
+                    <i class="text-purple-600 fas fa-tag dark:text-purple-400"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-gray-900 dark:text-white">Thêm danh mục</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Tạo danh mục sản phẩm mới</p>
+                </div>
+                <i class="ml-auto text-gray-400 fas fa-chevron-right"></i>
+            </a>
+
+            <a asp-area="Admin" asp-controller="Supplier" asp-action="Create" 
+               class="flex items-center gap-4 p-4 transition-colors border border-gray-200 rounded-lg hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                <div class="flex items-center justify-center flex-shrink-0 w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/20">
+                    <i class="text-orange-600 fas fa-truck dark:text-orange-400"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-gray-900 dark:text-white">Thêm nhà cung cấp</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Thêm nhà cung cấp mới</p>
+                </div>
+                <i class="ml-auto text-gray-400 fas fa-chevron-right"></i>
+            </a>
+
+            <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" 
+               class="flex items-center gap-4 p-4 transition-colors border border-gray-200 rounded-lg hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                <div class="flex items-center justify-center flex-shrink-0 w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/20">
+                    <i class="text-green-600 fas fa-chart-line dark:text-green-400"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-gray-900 dark:text-white">Xem báo cáo</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Dashboard thống kê chi tiết</p>
+                </div>
+                <i class="ml-auto text-gray-400 fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Right Column - System Info -->
+    <div class="p-6 bg-white border border-gray-200 rounded-xl dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-brand-100 dark:bg-brand-900/20">
+                <i class="fas fa-info-circle text-brand-600 dark:text-brand-400"></i>
+            </div>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Thông tin hệ thống</h2>
+        </div>
+        <div class="space-y-4">
+            <div class="p-4 border border-gray-200 rounded-lg dark:border-gray-700">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Vai trò</span>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <span class="px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full dark:bg-red-900/20 dark:text-red-400">
+                            <i class="mr-1 fas fa-crown"></i>Administrator
+                        </span>
+                    }
+                    else if (User.IsInRole("Staff"))
+                    {
+                        <span class="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900/20 dark:text-blue-400">
+                            <i class="mr-1 fas fa-user-tie"></i>Nhân viên
+                        </span>
+                    }
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Quyền truy cập của bạn</p>
+            </div>
+
+            <div class="p-4 border border-gray-200 rounded-lg dark:border-gray-700">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Tài khoản</span>
+                    <span class="text-sm font-semibold text-gray-900 dark:text-white">@User.Identity?.Name</span>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Tên đăng nhập hiện tại</p>
+            </div>
+
+            <div class="p-4 border border-gray-200 rounded-lg dark:border-gray-700">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Phiên bản</span>
+                    <span class="text-sm font-semibold text-gray-900 dark:text-white">v1.0.0</span>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">MyProject Admin Panel</p>
+            </div>
+
+            <div class="p-4 border border-gray-200 rounded-lg dark:border-gray-700">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Trạng thái</span>
+                    <span class="flex items-center gap-2 text-sm font-semibold text-green-600 dark:text-green-400">
+                        <span class="flex w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        Online
+                    </span>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Hệ thống đang hoạt động</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Helpful Resources -->
+<div class="p-6 bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl dark:from-gray-900 dark:to-gray-800 dark:border-gray-800">
+    <div class="flex items-center gap-3 mb-6">
+        <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-brand-100 dark:bg-brand-900/20">
+            <i class="fas fa-book text-brand-600 dark:text-brand-400"></i>
+        </div>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Tài nguyên hữu ích</h2>
+    </div>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <a href="#" class="flex items-center gap-3 p-4 transition-all bg-white border border-gray-200 rounded-lg hover:shadow-md dark:bg-gray-800 dark:border-gray-700">
+            <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                <i class="text-blue-600 fas fa-question-circle dark:text-blue-400"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-gray-900 dark:text-white">Trợ giúp</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Hướng dẫn sử dụng</p>
+            </div>
+        </a>
+
+        <a href="#" class="flex items-center gap-3 p-4 transition-all bg-white border border-gray-200 rounded-lg hover:shadow-md dark:bg-gray-800 dark:border-gray-700">
+            <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/20">
+                <i class="text-purple-600 fas fa-headset dark:text-purple-400"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-gray-900 dark:text-white">Hỗ trợ</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Liên hệ support</p>
+            </div>
+        </a>
+
+        <a href="#" class="flex items-center gap-3 p-4 transition-all bg-white border border-gray-200 rounded-lg hover:shadow-md dark:bg-gray-800 dark:border-gray-700">
+            <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/20">
+                <i class="text-green-600 fas fa-video dark:text-green-400"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-gray-900 dark:text-white">Video</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Hướng dẫn video</p>
+            </div>
+        </a>
+
+        <a href="#" class="flex items-center gap-3 p-4 transition-all bg-white border border-gray-200 rounded-lg hover:shadow-md dark:bg-gray-800 dark:border-gray-700">
+            <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/20">
+                <i class="text-orange-600 fas fa-newspaper dark:text-orange-400"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-gray-900 dark:text-white">Blog</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Tin tức & cập nhật</p>
+            </div>
+        </a>
+    </div>
+</div>

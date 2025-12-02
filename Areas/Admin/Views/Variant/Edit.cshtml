@@ -1,0 +1,144 @@
+@model MyProject.Models.Shared.Variant
+
+@{
+    ViewData["Title"] = "Chỉnh sửa biến thể";
+    var product = ViewBag.Product as MyProject.Models.Shared.Product;
+    var attributeTypes = ViewBag.AttributeTypes as List<MyProject.Models.Shared.AttributeType>;
+    var existingAttributes = ViewBag.ExistingAttributes as Dictionary<int, string>;
+}
+
+<div class="mb-6">
+    <a asp-action="Index" asp-route-productId="@product?.ProductId" class="inline-flex items-center gap-2 text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+        <i class="fas fa-arrow-left"></i>
+        <span>Quay lại danh sách biến thể</span>
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="p-4 mb-6 border-l-4 border-green-500 rounded-lg bg-green-50 dark:bg-green-900/20">
+        <div class="flex items-start gap-3">
+            <i class="mt-0.5 text-green-600 fas fa-check-circle dark:text-green-400"></i>
+            <div class="flex-1">
+                <p class="font-medium text-green-800 dark:text-green-300">Thành công!</p>
+                <p class="text-sm text-green-700 dark:text-green-400">@TempData["SuccessMessage"]</p>
+            </div>
+        </div>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="p-4 mb-6 border-l-4 border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20">
+        <div class="flex items-start gap-3">
+            <i class="mt-0.5 text-red-600 fas fa-exclamation-circle dark:text-red-400"></i>
+            <div class="flex-1">
+                <p class="font-medium text-red-800 dark:text-red-300">Lỗi!</p>
+                <p class="text-sm text-red-700 dark:text-red-400">@TempData["ErrorMessage"]</p>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="max-w-3xl">
+    <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Chỉnh sửa biến thể</h1>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">ID: @Model.VariantId - @product?.ProductName</p>
+        </div>
+
+        <form asp-action="Edit" method="post">
+            @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+            {
+                <div class="p-4 mb-6 border-l-4 border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20">
+                    <div class="flex items-start gap-3">
+                        <i class="mt-0.5 text-red-600 fas fa-exclamation-triangle dark:text-red-400"></i>
+                        <div class="flex-1">
+                            <p class="mb-2 font-medium text-red-800 dark:text-red-300">Vui lòng kiểm tra lại thông tin:</p>
+                            <div asp-validation-summary="ModelOnly" class="text-sm text-red-700 dark:text-red-400"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+            
+            <input type="hidden" asp-for="VariantId" />
+            <input type="hidden" asp-for="ProductId" />
+            <input type="hidden" asp-for="RowVersion" />
+
+            <div class="space-y-6">
+                <div>
+                    <label asp-for="VariantName" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Tên biến thể <span class="text-red-500">*</span>
+                    </label>
+                    <input asp-for="VariantName" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                    <span asp-validation-for="VariantName" class="mt-1 text-sm text-red-600"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Price" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Giá <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input asp-for="Price" type="number" step="1000" min="0"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                        <span class="absolute text-gray-500 transform -translate-y-1/2 right-4 top-1/2 dark:text-gray-400">đ</span>
+                    </div>
+                    <span asp-validation-for="Price" class="mt-1 text-sm text-red-600"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Quanlity" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Số lượng tồn kho <span class="text-red-500">*</span>
+                    </label>
+                    <input asp-for="Quanlity" type="number" min="0"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                    <span asp-validation-for="Quanlity" class="mt-1 text-sm text-red-600"></span>
+                </div>
+
+                @if (attributeTypes != null && attributeTypes.Any())
+                {
+                    <div class="p-4 border border-gray-200 rounded-lg dark:border-gray-700">
+                        <h3 class="mb-4 font-semibold text-gray-900 dark:text-white">
+                            <i class="mr-2 fas fa-tags"></i>
+                            Thuộc tính
+                        </h3>
+                        <div class="space-y-4">
+                            @foreach (var attrType in attributeTypes)
+                            {
+                                var currentValue = existingAttributes?.ContainsKey(attrType.AttributeTypeId) == true 
+                                    ? existingAttributes[attrType.AttributeTypeId] : string.Empty;
+                                
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        @attrType.Name
+                                    </label>
+                                    <input type="text" name="attributes[@attrType.AttributeTypeId]" value="@currentValue"
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                           placeholder="Nhập giá trị @attrType.Name">
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <button type="submit" 
+                            class="flex items-center gap-2 px-6 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                        <i class="fas fa-save"></i>
+                        <span>Cập nhật</span>
+                    </button>
+                    <a asp-action="Index" asp-route-productId="@product?.ProductId"
+                       class="flex items-center gap-2 px-6 py-2 text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                        <i class="fas fa-times"></i>
+                        <span>Hủy</span>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ModernValidationScripts");}
+}

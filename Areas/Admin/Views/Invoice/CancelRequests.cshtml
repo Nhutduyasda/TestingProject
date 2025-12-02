@@ -1,0 +1,185 @@
+@model IEnumerable<MyProject.Areas.User.Models.Invoice>
+@using MyProject.Areas.Admin.Models
+
+@{
+    ViewData["Title"] = "Yêu cầu hủy đơn hàng";
+}
+
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+        <i class="mr-2 fas fa-ban"></i>
+        Yêu cầu hủy đơn hàng
+    </h1>
+    <p class="mt-1 text-gray-600 dark:text-gray-400">Xem xét và phê duyệt các yêu cầu hủy đơn từ khách hàng</p>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="p-12 text-center bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <i class="mb-4 text-gray-400 fas fa-inbox fa-4x"></i>
+        <p class="text-lg text-gray-600 dark:text-gray-400">Không có yêu cầu hủy đơn nào</p>
+    </div>
+}
+else
+{
+    <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        @foreach (var invoice in Model)
+        {
+            <div class="overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800 hover:shadow-lg">
+                <div class="p-6">
+                    <!-- Header -->
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="font-semibold text-gray-900 dark:text-white">
+                                #INV-@invoice.InvoiceId.ToString("D6")
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                @invoice.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                            </p>
+                        </div>
+                        <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium text-orange-800 bg-orange-100 rounded-lg dark:bg-orange-900/30 dark:text-orange-300">
+                            <i class="mr-1 fas fa-clock"></i>
+                            Chờ duyệt
+                        </span>
+                    </div>
+
+                    <!-- Customer Info -->
+                    <div class="p-3 mb-4 border border-gray-200 rounded-lg dark:border-gray-700">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/30">
+                                <i class="text-brand-600 fas fa-user"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-gray-900 truncate dark:text-white">@invoice.RecipientName</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">@invoice.PhoneNumber</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            <i class="mr-1 fas fa-map-marker-alt"></i>
+                            @invoice.DeliveryAddress
+                        </p>
+                    </div>
+
+                    <!-- Order Amount -->
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Tổng giá trị:</span>
+                        <span class="text-lg font-bold text-brand-600">@invoice.TotalAmount.ToString("N0") đ</span>
+                    </div>
+
+                    <!-- Cancel Reason -->
+                    @if (!string.IsNullOrEmpty(invoice.Note))
+                    {
+                        <div class="p-3 mb-4 border-l-4 border-orange-500 rounded bg-orange-50 dark:bg-orange-900/10">
+                            <p class="mb-1 text-xs font-semibold text-orange-800 uppercase dark:text-orange-300">Lý do hủy:</p>
+                            <p class="text-sm text-gray-700 dark:text-gray-300">@invoice.Note</p>
+                        </div>
+                    }
+
+                    <!-- Actions -->
+                    <div class="grid grid-cols-2 gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <button onclick="approveCancel(@invoice.InvoiceId)"
+                                class="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700">
+                            <i class="fas fa-check"></i>
+                            Chấp nhận
+                        </button>
+                        <button onclick="rejectCancel(@invoice.InvoiceId)"
+                                class="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                            <i class="fas fa-times"></i>
+                            Từ chối
+                        </button>
+                    </div>
+
+                    <!-- View Details Link -->
+                    <div class="mt-3">
+                        <a asp-action="Details" asp-route-id="@invoice.InvoiceId" 
+                           class="flex items-center justify-center gap-2 text-sm font-medium transition-colors text-brand-600 hover:text-brand-700">
+                            <i class="fas fa-eye"></i>
+                            Xem chi tiết
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Stats Summary -->
+<div class="grid gap-4 mt-6 md:grid-cols-3">
+    <div class="p-4 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Tổng yêu cầu</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">@Model.Count()</p>
+            </div>
+            <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                <i class="text-xl text-orange-600 fas fa-exclamation-circle"></i>
+            </div>
+        </div>
+    </div>
+    <div class="p-4 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Tổng giá trị</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">@Model.Sum(i => i.TotalAmount).ToString("N0") đ</p>
+            </div>
+            <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-brand-100 dark:bg-brand-900/30">
+                <i class="text-xl fas fa-dollar-sign text-brand-600"></i>
+            </div>
+        </div>
+    </div>
+    <div class="p-4 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Trung bình</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                    @(Model.Any() ? (Model.Average(i => i.TotalAmount)).ToString("N0") : "0") đ
+                </p>
+            </div>
+            <div class="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg dark:bg-purple-900/30">
+                <i class="text-xl text-purple-600 fas fa-chart-line"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ModernValidationScripts");}
+    <script>
+        async function approveCancel(invoiceId) {
+            const reason = prompt('Nhập lý do chấp nhận hủy đơn (tùy chọn):');
+            if (reason === null) return; // User cancelled
+            
+            try {
+                const response = await fetch('/Admin/Invoice/ApproveCancel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ invoiceId: invoiceId, reason: reason || 'Đã phê duyệt' })
+                });
+                
+                const result = await response.json();
+                alert(result.message);
+                if (result.success) location.reload();
+            } catch (error) {
+                alert('Có lỗi xảy ra: ' + error.message);
+            }
+        }
+
+        async function rejectCancel(invoiceId) {
+            if (!confirm('Xác nhận từ chối yêu cầu hủy đơn này?')) return;
+            
+            try {
+                const response = await fetch('/Admin/Invoice/RejectCancel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ invoiceId: invoiceId })
+                });
+                
+                const result = await response.json();
+                alert(result.message);
+                if (result.success) location.reload();
+            } catch (error) {
+                alert('Có lỗi xảy ra: ' + error.message);
+            }
+        }
+    </script>
+}

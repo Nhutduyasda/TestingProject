@@ -1,0 +1,322 @@
+@model MyProject.Areas.User.Models.Invoice
+@using MyProject.Areas.Admin.Models
+
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    var invoiceDetails = ViewBag.InvoiceDetails as List<MyProject.Areas.User.Models.InvoiceDetail>;
+    var totalAmount = ViewBag.TotalAmount as decimal? ?? 0;
+}
+
+<div id="invoice-details-container">
+    <div class="mb-6">
+        <a asp-action="Index" class="inline-flex items-center gap-2 text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+            <i class="fas fa-arrow-left"></i>
+            <span>Quay lại danh sách</span>
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Order Info -->
+            <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+                <div class="flex items-start justify-between mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Đơn hàng #INV-@Model.InvoiceId.ToString("D6")</h1>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Ngày tạo: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                    <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg
+                        @(Model.Status == OrderStatus.Pending ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300" :
+                          Model.Status == OrderStatus.Confirmed ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" :
+                          Model.Status == OrderStatus.Shipped ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" :
+                          Model.Status == OrderStatus.Completed ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" :
+                          Model.Status == OrderStatus.CancelRequested ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300" :
+                          "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300")">
+                        <i class="mr-2 @Model.Status.ToIconClass()"></i>
+                        @Model.Status.ToDisplayText()
+                    </span>
+                </div>
+
+                <!-- Progress Timeline -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        @{
+                            var statuses = new[] { OrderStatus.Pending, OrderStatus.Confirmed, OrderStatus.Shipped, OrderStatus.Completed };
+                            var currentIndex = Array.IndexOf(statuses, Model.Status);
+                        }
+                        @foreach (var (status, index) in statuses.Select((s, i) => (s, i)))
+                        {
+                            var isActive = index <= currentIndex && Model.Status != OrderStatus.Cancelled;
+                            <div class="flex flex-col items-center flex-1">
+                                <div class="@(isActive ? "bg-brand-600 text-white" : "bg-gray-200 text-gray-500 dark:bg-gray-700") w-10 h-10 rounded-full flex items-center justify-center mb-2">
+                                    <i class="@status.ToIconClass()"></i>
+                                </div>
+                                <span class="text-xs text-center text-gray-600 dark:text-gray-400">@status.ToDisplayText()</span>
+                            </div>
+                            @if (index < statuses.Length - 1)
+                            {
+                                <div class="flex-1 h-1 mx-2 @(isActive && index < currentIndex ? "bg-brand-600" : "bg-gray-200 dark:bg-gray-700")"></div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <!-- Customer Info -->
+                <div class="p-4 border border-gray-200 rounded-lg dark:border-gray-700">
+                    <h3 class="mb-3 font-semibold text-gray-900 dark:text-white">
+                        <i class="mr-2 fas fa-user"></i>
+                        Thông tin người nhận
+                    </h3>
+                    <dl class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <dt class="text-gray-600 dark:text-gray-400">Họ tên:</dt>
+                            <dd class="font-medium text-gray-900 dark:text-white">@Model.RecipientName</dd>
+                        </div>
+                        <div class="flex justify-between">
+                            <dt class="text-gray-600 dark:text-gray-400">Số điện thoại:</dt>
+                            <dd class="font-medium text-gray-900 dark:text-white">@Model.PhoneNumber</dd>
+                        </div>
+                        <div class="flex justify-between">
+                            <dt class="text-gray-600 dark:text-gray-400">Địa chỉ:</dt>
+                            <dd class="font-medium text-right text-gray-900 dark:text-white">@Model.DeliveryAddress</dd>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.Note))
+                        {
+                            <div class="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
+                                <dt class="mb-1 text-gray-600 dark:text-gray-400">Ghi chú:</dt>
+                                <dd class="text-gray-900 dark:text-white">@Model.Note</dd>
+                            </div>
+                        }
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+                <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+                    <i class="mr-2 fas fa-shopping-cart"></i>
+                    Sản phẩm đã đặt
+                </h3>
+                <div class="space-y-4">
+                    @if (invoiceDetails != null && invoiceDetails.Any())
+                    {
+                        @foreach (var detail in invoiceDetails)
+                        {
+                            <div class="flex gap-4 p-4 border border-gray-200 rounded-lg dark:border-gray-700">
+                                @if (detail.Variant?.Product?.Images?.FirstOrDefault()?.ImageUrl != null)
+                                {
+                                    <img src="@detail.Variant.Product.Images.FirstOrDefault()?.ImageUrl" 
+                                         alt="@detail.Variant.VariantName"
+                                         class="object-cover w-20 h-20 rounded-lg">
+                                }
+                                else
+                                {
+                                    <div class="flex items-center justify-center w-20 h-20 bg-gray-100 rounded-lg dark:bg-gray-800">
+                                        <i class="text-2xl text-gray-400 fas fa-image"></i>
+                                    </div>
+                                }
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-900 dark:text-white">
+                                        @(detail.Variant?.Product?.ProductName ?? detail.Combo?.ComboName ?? "Unknown")
+                                    </h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">@detail.Variant?.VariantName</p>
+                                    <div class="flex items-center gap-4 mt-2 text-sm">
+                                        <span class="text-gray-600 dark:text-gray-400">SL: @detail.Quantity</span>
+                                        <span class="font-semibold text-brand-600">@detail.UnitPrice.ToString("N0") đ</span>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold text-gray-900 dark:text-white">
+                                        @((detail.Quantity * detail.UnitPrice).ToString("N0")) đ
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Total Summary -->
+            <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+                <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Tổng quan</h3>
+                <dl class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <dt class="text-gray-600 dark:text-gray-400">Tạm tính:</dt>
+                        <dd class="font-medium text-gray-900 dark:text-white">@totalAmount.ToString("N0") đ</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-600 dark:text-gray-400">Phí vận chuyển:</dt>
+                        <dd class="font-medium text-gray-900 dark:text-white">Miễn phí</dd>
+                    </div>
+                    <div class="pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
+                        <div class="flex justify-between">
+                            <dt class="text-lg font-semibold text-gray-900 dark:text-white">Tổng cộng:</dt>
+                            <dd class="text-lg font-bold text-brand-600">@Model.TotalAmount.ToString("N0") đ</dd>
+                        </div>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Actions -->
+            @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+            {
+                <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+                    <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Thao tác</h3>
+                    <div class="space-y-2">
+                        @if (Model.Status == OrderStatus.Pending)
+                        {
+                            <button onclick="confirmOrder(@Model.InvoiceId)"
+                                    class="w-full px-4 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                                <i class="mr-2 fas fa-check"></i>
+                                Xác nhận đơn hàng
+                            </button>
+                        }
+                        @if (Model.Status == OrderStatus.Confirmed)
+                        {
+                            <button onclick="markShipped(@Model.InvoiceId)"
+                                    class="w-full px-4 py-2 text-white transition-colors bg-purple-600 rounded-lg hover:bg-purple-700">
+                                <i class="mr-2 fas fa-truck"></i>
+                                Đánh dấu đang giao
+                            </button>
+                        }
+                        @if (Model.Status == OrderStatus.CancelRequested && User.IsInRole("Admin"))
+                        {
+                            <button onclick="approveCancel(@Model.InvoiceId)"
+                                    class="w-full px-4 py-2 text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700">
+                                <i class="mr-2 fas fa-times-circle"></i>
+                                Chấp nhận hủy đơn
+                            </button>
+                            <button onclick="rejectCancel(@Model.InvoiceId)"
+                                    class="w-full px-4 py-2 text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300">
+                                <i class="mr-2 fas fa-undo"></i>
+                                Từ chối hủy đơn
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ModernValidationScripts");}
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function reloadPageContent() {
+            $('#invoice-details-container').load(location.href + ' #invoice-details-container > *', function() {
+                // Re-initialize any plugins if needed
+            });
+        }
+
+        async function confirmOrder(invoiceId) {
+            Swal.fire({
+                title: 'Xác nhận đơn hàng?',
+                text: "Bạn có chắc chắn muốn xác nhận đơn hàng này?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Xác nhận',
+                cancelButtonText: 'Hủy'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    await updateOrderStatus('@Url.Action("Confirm", "Invoice")', invoiceId);
+                }
+            });
+        }
+
+        async function markShipped(invoiceId) {
+            Swal.fire({
+                title: 'Đánh dấu đang giao?',
+                text: "Bạn có chắc chắn muốn chuyển trạng thái sang đang giao hàng?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    await updateOrderStatus('@Url.Action("MarkShipped", "Invoice")', invoiceId);
+                }
+            });
+        }
+
+        async function approveCancel(invoiceId) {
+            Swal.fire({
+                title: 'Chấp nhận hủy đơn',
+                input: 'text',
+                inputLabel: 'Lý do chấp nhận (tùy chọn)',
+                showCancelButton: true,
+                confirmButtonText: 'Chấp nhận hủy',
+                cancelButtonText: 'Đóng',
+                confirmButtonColor: '#d33'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    await updateOrderStatus('@Url.Action("ApproveCancel", "Invoice")', invoiceId, result.value);
+                }
+            });
+        }
+
+        async function rejectCancel(invoiceId) {
+            Swal.fire({
+                title: 'Từ chối hủy đơn?',
+                text: "Bạn có chắc chắn muốn từ chối yêu cầu hủy đơn này?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Từ chối hủy',
+                cancelButtonText: 'Đóng'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    await updateOrderStatus('@Url.Action("RejectCancel", "Invoice")', invoiceId);
+                }
+            });
+        }
+
+        async function updateOrderStatus(url, invoiceId, reason = null) {
+            try {
+                const formData = new FormData();
+                formData.append('invoiceId', invoiceId);
+                if (reason) formData.append('reason', reason);
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công',
+                        text: result.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        reloadPageContent();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: result.message
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Có lỗi xảy ra: ' + error.message
+                });
+            }
+        }
+    </script>
+}

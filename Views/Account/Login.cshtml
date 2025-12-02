@@ -1,0 +1,247 @@
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - MyProject</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f4ff',
+                            100: '#e0e9ff',
+                            200: '#c7d7fe',
+                            300: '#a5b8fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#465fff',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="antialiased bg-gradient-to-br from-brand-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    
+    <!-- Dark Mode Toggle -->
+    <div class="fixed top-4 right-4 z-50">
+        <button onclick="toggleDarkMode()" 
+                class="p-3 text-gray-600 transition-all bg-white rounded-lg shadow-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+            <i class="fas fa-moon dark:hidden"></i>
+            <i class="hidden fas fa-sun dark:inline"></i>
+        </button>
+    </div>
+
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="w-full max-w-md">
+            
+            <!-- Logo & Welcome -->
+            <div class="mb-8 text-center">
+                <div class="flex items-center justify-center w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-brand-500 to-purple-600 shadow-xl">
+                    <i class="text-3xl text-white fas fa-user-circle"></i>
+                </div>
+                <h1 class="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Chào mừng trở lại!</h1>
+                <p class="text-gray-600 dark:text-gray-400">Đăng nhập để tiếp tục sử dụng MyProject</p>
+            </div>
+
+            <!-- Login Form -->
+            <div class="p-8 bg-white border border-gray-200 shadow-2xl backdrop-blur-sm rounded-2xl dark:bg-gray-800/50 dark:border-gray-700">
+                
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="p-4 mb-6 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20">
+                        <div class="flex items-start gap-3">
+                            <i class="mt-1 text-red-600 fas fa-exclamation-circle dark:text-red-400"></i>
+                            <div class="text-sm text-red-800 dark:text-red-300">
+                                @Html.ValidationSummary(false, "", new { @class = "list-none" })
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="p-4 mb-6 border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20">
+                        <div class="flex items-start gap-3">
+                            <i class="mt-1 text-green-600 fas fa-check-circle dark:text-green-400"></i>
+                            <div class="text-sm text-green-800 dark:text-green-300">
+                                @TempData["SuccessMessage"]
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (TempData["InfoMessage"] != null)
+                {
+                    <div class="p-4 mb-6 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20">
+                        <div class="flex items-start gap-3">
+                            <i class="mt-1 text-blue-600 fas fa-info-circle dark:text-blue-400"></i>
+                            <div class="text-sm text-blue-800 dark:text-blue-300">
+                                @TempData["InfoMessage"]
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <form method="post" asp-action="Login" asp-controller="Account">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+                    <div class="space-y-5">
+                        <!-- Username -->
+                        <div>
+                            <label for="username" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <i class="mr-1 fas fa-user text-brand-600 dark:text-brand-400"></i>
+                                Tên đăng nhập
+                            </label>
+                            <input type="text" 
+                                   id="username" 
+                                   name="username" 
+                                   required
+                                   autocomplete="username"
+                                   class="w-full px-4 py-3 transition-all border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-brand-500"
+                                   placeholder="Nhập tên đăng nhập của bạn">
+                        </div>
+
+                        <!-- Password -->
+                        <div x-data="{ showPassword: false }">
+                            <label for="password" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <i class="mr-1 fas fa-lock text-brand-600 dark:text-brand-400"></i>
+                                Mật khẩu
+                            </label>
+                            <div class="relative">
+                                <input :type="showPassword ? 'text' : 'password'" 
+                                       id="password" 
+                                       name="password" 
+                                       required
+                                       autocomplete="current-password"
+                                       class="w-full px-4 py-3 pr-12 transition-all border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-brand-500"
+                                       placeholder="Nhập mật khẩu của bạn">
+                                <button type="button" 
+                                        @@click="showPassword = !showPassword"
+                                        class="absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                    <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Remember & Forgot Password -->
+                        <div class="flex items-center justify-between text-sm">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-gray-600 dark:text-gray-400">Ghi nhớ đăng nhập</span>
+                            </label>
+                            <a href="#" class="font-medium transition-colors text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+                                Quên mật khẩu?
+                            </a>
+                        </div>
+
+                        <!-- Login Button -->
+                        <button type="submit" 
+                                class="flex items-center justify-center w-full gap-2 px-6 py-3 text-white transition-all shadow-lg bg-gradient-to-r from-brand-600 to-purple-600 rounded-xl hover:from-brand-700 hover:to-purple-700 hover:shadow-xl">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="font-medium">Đăng nhập</span>
+                        </button>
+
+                        <!-- Divider -->
+                        <div class="relative flex items-center justify-center my-4">
+                            <div class="absolute inset-0 flex items-center">
+                                <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                            </div>
+                            <div class="relative px-4 text-sm text-gray-500 bg-white dark:bg-gray-800 dark:text-gray-400">
+                                Hoặc
+                            </div>
+                        </div>
+
+                        <!-- Google Login Button -->
+                        <a asp-action="GoogleLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]"
+                           class="flex items-center justify-center w-full gap-2 px-6 py-3 transition-all bg-white border border-gray-300 shadow-md rounded-xl hover:bg-gray-50 hover:shadow-lg dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white">
+                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
+                            <span class="font-medium text-gray-700 dark:text-gray-200">Đăng nhập bằng Google</span>
+                        </a>
+
+                        <!-- Demo Accounts Info -->
+                        <div class="p-4 border border-blue-200 bg-blue-50 rounded-xl dark:bg-blue-900/10 dark:border-blue-800">
+                            <div class="flex items-start gap-2 mb-3">
+                                <i class="mt-1 text-blue-600 fas fa-info-circle dark:text-blue-400"></i>
+                                <div class="text-sm font-medium text-blue-800 dark:text-blue-300">Tài khoản demo:</div>
+                            </div>
+                            <div class="space-y-2 text-xs text-blue-700 dark:text-blue-300">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-1 font-medium text-blue-800 bg-blue-100 rounded dark:bg-blue-900/30 dark:text-blue-200">Admin</span>
+                                    <span>admin / Admin@123</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-1 font-medium text-purple-800 bg-purple-100 rounded dark:bg-purple-900/30 dark:text-purple-200">User</span>
+                                    <span>user / User@123</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Register Link -->
+                        <div class="pt-4 text-center border-t border-gray-200 dark:border-gray-700">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                Chưa có tài khoản? 
+                                <a asp-action="Register" 
+                                   class="font-medium transition-colors text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+                                    Đăng ký ngay
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Back to Home -->
+            <div class="mt-6 text-center">
+                <a asp-controller="Home" asp-action="Index" 
+                   class="inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    <i class="fas fa-home"></i>
+                    <span>Quay về trang chủ</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            if (localStorage.theme === 'dark') {
+                localStorage.theme = 'light';
+                document.documentElement.classList.remove('dark');
+            } else {
+                localStorage.theme = 'dark';
+                document.documentElement.classList.add('dark');
+            }
+        }
+
+        // Initialize dark mode based on localStorage
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+@model MyProject.Models.Shared.Combo
+
+@{
+    ViewData["Title"] = "Create Combo";
+}
+
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Create New Combo</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-group mb-3">
+                            <label asp-for="ComboName" class="control-label">Combo Name</label>
+                            <input asp-for="ComboName" class="form-control" />
+                            <span asp-validation-for="ComboName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Description" class="control-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Price" class="control-label">Price (Selling Price)</label>
+                                    <input asp-for="Price" class="form-control" type="number" step="0.01" />
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="CategoryId" class="control-label">Category</label>
+                                    <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.Categories">
+                                        <option value="">-- Select Category --</option>
+                                    </select>
+                                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="AvailableQuantity" class="control-label">Available Quantity</label>
+                                    <input asp-for="AvailableQuantity" class="form-control" type="number" />
+                                    <span asp-validation-for="AvailableQuantity" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" asp-for="IsActive" />
+                                        <label class="form-check-label" asp-for="IsActive">
+                                            Is Active
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="form-group mb-3">
+                            <label asp-for="ImageUrl" class="control-label">Image</label>
+                            <input type="file" name="file" class="form-control" onchange="previewImage(this)" />
+                            <div class="mt-2">
+                                <img id="imagePreview" src="#" alt="Image Preview" style="max-width: 100%; display: none;" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
+                
+                <h5 class="mb-3">Combo Products</h5>
+                <div id="productsContainer">
+                    <!-- Dynamic product rows will be added here -->
+                </div>
+                
+                <div class="mb-3">
+                    <button type="button" class="btn btn-secondary" onclick="addProductRow()">
+                        <i class="fas fa-plus"></i> Add Product
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#imagePreview').attr('src', e.target.result).show();
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function addProductRow() {
+            var index = $('#productsContainer .product-row').length;
+            var products = @Html.Raw(Json.Serialize(ViewBag.Products));
+            
+            var options = '<option value="">-- Select Product --</option>';
+            products.forEach(function(p) {
+                options += `<option value="${p.productId}">${p.name}</option>`;
+            });
+
+            var html = `
+                <div class="row product-row mb-2">
+                    <div class="col-md-6">
+                        <select name="productIds" class="form-control" required>
+                            ${options}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="number" name="quantities" class="form-control" placeholder="Quantity" value="1" min="1" required />
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-danger" onclick="removeProductRow(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            $('#productsContainer').append(html);
+        }
+
+        function removeProductRow(btn) {
+            $(btn).closest('.product-row').remove();
+        }
+
+        // Add initial row
+        $(document).ready(function() {
+            addProductRow();
+        });
+    </script>
+}

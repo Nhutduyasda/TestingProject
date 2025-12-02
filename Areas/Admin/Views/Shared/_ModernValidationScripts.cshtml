@@ -1,0 +1,260 @@
+@* Modern Validation Scripts with Real-time Feedback *@
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+<style>
+    /* Modern Input States */
+    .input-error {
+        border-color: #ef4444 !important;
+        background-color: #fef2f2;
+    }
+    
+    .dark .input-error {
+        border-color: #dc2626 !important;
+        background-color: rgba(220, 38, 38, 0.1);
+    }
+    
+    .input-success {
+        border-color: #10b981 !important;
+    }
+    
+    .dark .input-success {
+        border-color: #059669 !important;
+    }
+    
+    /* Validation Messages */
+    .field-validation-error {
+        display: flex;
+        align-items-center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        color: #dc2626;
+        background-color: #fef2f2;
+        border-left: 3px solid #ef4444;
+        border-radius: 0.375rem;
+        animation: slideDown 0.3s ease-out;
+    }
+    
+    .dark .field-validation-error {
+        color: #fca5a5;
+        background-color: rgba(220, 38, 38, 0.1);
+        border-left-color: #dc2626;
+    }
+    
+    .field-validation-error::before {
+        content: "\f06a";
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        font-size: 1rem;
+    }
+    
+    .field-validation-valid {
+        display: none;
+    }
+    
+    /* Success Checkmark */
+    .input-wrapper {
+        position: relative;
+    }
+    
+    .input-wrapper.has-success::after {
+        content: "\f00c";
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #10b981;
+        font-size: 1rem;
+        animation: checkmark 0.3s ease-out;
+    }
+    
+    /* Animations */
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @@keyframes checkmark {
+        0% {
+            transform: translateY(-50%) scale(0);
+        }
+        50% {
+            transform: translateY(-50%) scale(1.2);
+        }
+        100% {
+            transform: translateY(-50%) scale(1);
+        }
+    }
+    
+    /* Form Validation Summary */
+    .validation-summary-errors {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        background-color: #fef2f2;
+        border-left: 4px solid #ef4444;
+        border-radius: 0.5rem;
+        animation: slideDown 0.3s ease-out;
+    }
+    
+    .dark .validation-summary-errors {
+        background-color: rgba(220, 38, 38, 0.1);
+        border-left-color: #dc2626;
+    }
+    
+    .validation-summary-errors ul {
+        margin: 0;
+        padding-left: 1.5rem;
+        color: #dc2626;
+    }
+    
+    .dark .validation-summary-errors ul {
+        color: #fca5a5;
+    }
+    
+    .validation-summary-errors li {
+        margin: 0.25rem 0;
+        font-size: 0.875rem;
+    }
+    
+    /* Loading State */
+    .btn-loading {
+        position: relative;
+        pointer-events: none;
+        opacity: 0.7;
+    }
+    
+    .btn-loading::after {
+        content: "";
+        position: absolute;
+        width: 1rem;
+        height: 1rem;
+        top: 50%;
+        left: 50%;
+        margin-left: -0.5rem;
+        margin-top: -0.5rem;
+        border: 2px solid transparent;
+        border-top-color: currentColor;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+    }
+    
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        // Auto-wrap inputs that don't have wrapper
+        $('form input:not([type="hidden"]), form textarea, form select').each(function() {
+            if (!$(this).parent().hasClass('input-wrapper') && !$(this).parent().hasClass('relative')) {
+                $(this).wrap('<div class="input-wrapper"></div>');
+            }
+        });
+        
+        // Configure jQuery Validation
+        $.validator.setDefaults({
+            errorElement: 'span',
+            errorClass: 'field-validation-error',
+            validClass: 'field-validation-valid',
+            highlight: function(element, errorClass, validClass) {
+                $(element).addClass('input-error').removeClass('input-success');
+                $(element).closest('.input-wrapper').removeClass('has-success');
+            },
+            unhighlight: function(element, errorClass, validClass) {
+                $(element).removeClass('input-error').addClass('input-success');
+                $(element).closest('.input-wrapper').addClass('has-success');
+            },
+            errorPlacement: function(error, element) {
+                error.insertAfter(element);
+            }
+        });
+        
+        // Real-time validation on input
+        $('form input, form textarea, form select').on('blur change', function() {
+            if ($(this).valid()) {
+                $(this).addClass('input-success').removeClass('input-error');
+                $(this).closest('.input-wrapper').addClass('has-success');
+            }
+        });
+        
+        // Clear validation on focus
+        $('form input, form textarea, form select').on('focus', function() {
+            $(this).removeClass('input-error input-success');
+            $(this).closest('.input-wrapper').removeClass('has-success');
+            $(this).next('.field-validation-error').fadeOut(200, function() {
+                $(this).remove();
+            });
+        });
+        
+        // Form submit with loading state
+        $('form').on('submit', function(e) {
+            if ($(this).valid()) {
+                var submitBtn = $(this).find('button[type="submit"]');
+                submitBtn.addClass('btn-loading');
+                submitBtn.prop('disabled', true);
+                
+                // Re-enable after 5 seconds (fallback)
+                setTimeout(function() {
+                    submitBtn.removeClass('btn-loading');
+                    submitBtn.prop('disabled', false);
+                }, 5000);
+            }
+        });
+        
+        // Auto-hide success messages after 5 seconds
+        setTimeout(function() {
+            $('.alert-success, [class*="bg-green"]').fadeOut(500);
+        }, 5000);
+        
+        // Number input validation
+        $('input[type="number"]').on('input', function() {
+            var min = $(this).attr('min');
+            var max = $(this).attr('max');
+            var val = parseFloat($(this).val());
+            
+            if (min !== undefined && val < parseFloat(min)) {
+                $(this).val(min);
+            }
+            if (max !== undefined && val > parseFloat(max)) {
+                $(this).val(max);
+            }
+        });
+        
+        // Price formatting
+        $('input[name="Price"], input[data-format="currency"]').on('blur', function() {
+            var val = parseFloat($(this).val());
+            if (!isNaN(val)) {
+                $(this).val(Math.round(val));
+            }
+        });
+        
+        // Prevent double submit
+        var formSubmitting = false;
+        $('form').on('submit', function(e) {
+            if (formSubmitting) {
+                e.preventDefault();
+                return false;
+            }
+            
+            if ($(this).valid()) {
+                formSubmitting = true;
+            }
+        });
+        
+        // Initialize validation for dynamically loaded forms
+        if (typeof $.validator !== 'undefined') {
+            $.validator.unobtrusive.parse('form');
+        }
+    });
+</script>

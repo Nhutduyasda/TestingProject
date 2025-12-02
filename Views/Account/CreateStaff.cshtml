@@ -1,0 +1,57 @@
+@{
+    ViewData["Title"] = "Tạo tài khoản Staff";
+}
+
+@section Styles {
+    <style>
+        .staff-create-container {
+            max-width: 500px;
+            margin: 50px auto;
+        }
+    </style>
+}
+
+<div class="staff-create-container">
+    <div class="card shadow">
+        <div class="card-body">
+            <h3 class="card-title text-center mb-4">
+                <i class="fas fa-user-plus"></i> Tạo tài khoản Staff
+            </h3>
+            
+            @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    @ViewBag.ErrorMessage
+                </div>
+            }
+            
+            <form method="post" asp-action="CreateStaff" asp-controller="Account">
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                
+                <div class="mb-3">
+                    <label for="username" class="form-label">Tên đăng nhập *</label>
+                    <input type="text" class="form-control" id="username" name="username" required autofocus>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email *</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mật khẩu * (tối thiểu 6 ký tự)</label>
+                    <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Tạo tài khoản
+                    </button>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Hủy
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MyProject</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecf3ff',
+                            100: '#dde9ff',
+                            200: '#c2d6ff',
+                            300: '#9cb9ff',
+                            400: '#7592ff',
+                            500: '#465fff',
+                            600: '#3641f5',
+                        },
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            300: '#d1d5db',
+                            400: '#9ca3af',
+                            500: '#6b7280',
+                            600: '#4b5563',
+                            700: '#374151',
+                            800: '#1f2937',
+                            900: '#111827',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-950" x-data="{ 
+    mobileMenuOpen: false,
+    userMenuOpen: false,
+    darkMode: false,
+    cartOpen: false,
+    init() {
+        this.darkMode = localStorage.getItem('darkMode') === 'true';
+        if (this.darkMode) {
+            document.documentElement.classList.add('dark');
+        }
+    },
+    toggleDark() {
+        this.darkMode = !this.darkMode;
+        localStorage.setItem('darkMode', this.darkMode);
+        document.documentElement.classList.toggle('dark');
+    }
+}">
+    
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm dark:bg-gray-900 dark:border-gray-800">
+        <nav class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a asp-area="" asp-controller="Home" asp-action="Index" class="flex items-center">
+                        <span class="text-2xl font-bold text-brand-600">
+                            <i class="fas fa-store mr-2"></i>
+                            MyProject
+                        </span>
+                    </a>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <div class="items-center hidden space-x-8 md:flex">
+                    <a asp-area="" asp-controller="Home" asp-action="Index" 
+                       class="text-gray-700 transition-colors hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-400">
+                        <i class="mr-1 fas fa-home"></i> Trang chủ
+                    </a>
+                    <a asp-area="" asp-controller="Products" asp-action="Index" 
+                       class="text-gray-700 transition-colors hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-400">
+                        <i class="mr-1 fas fa-shopping-bag"></i> Sản phẩm
+                    </a>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-area="User" asp-controller="Dashboard" asp-action="Index" 
+                           class="text-gray-700 transition-colors hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-400">
+                            <i class="mr-1 fas fa-th-large"></i> Bảng điều khiển
+                        </a>
+                        <a asp-area="User" asp-controller="Orders" asp-action="Index" 
+                           class="text-gray-700 transition-colors hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-400">
+                            <i class="mr-1 fas fa-receipt"></i> Đơn hàng
+                        </a>
+                    }
+                </div>
+
+                <!-- Right Side Menu -->
+                <div class="flex items-center gap-3">
+                    <!-- Dark mode toggle -->
+                    <button type="button" @@click="toggleDark()" 
+                            class="flex items-center justify-center w-10 h-10 text-gray-500 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800">
+                        <i class="fas" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
+                    </button>
+
+                    <!-- Shopping Cart -->
+                    <a asp-area="" asp-controller="Cart" asp-action="MyCart" 
+                       class="relative flex items-center justify-center w-10 h-10 text-gray-500 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="absolute top-0 right-0 flex items-center justify-center w-5 h-5 text-xs text-white rounded-full bg-brand-600">
+                            0
+                        </span>
+                    </a>
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <!-- User Menu -->
+                        <div class="relative hidden md:block" x-data="{ open: false }">
+                            <button type="button" 
+                                    @@click="open = !open"
+                                    class="flex items-center gap-2 px-3 py-2 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+                                <div class="flex items-center justify-center w-8 h-8 bg-brand-100 rounded-full dark:bg-brand-900">
+                                    <i class="text-sm fas fa-user text-brand-600 dark:text-brand-400"></i>
+                                </div>
+                                <span class="hidden lg:block">@User.Identity?.Name</span>
+                                <i class="text-xs fas fa-chevron-down"></i>
+                            </button>
+
+                            <div x-show="open" 
+                                 @@click.away="open = false"
+                                 x-transition
+                                 style="display: none;"
+                                 class="absolute right-0 w-56 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700">
+                                <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">@User.Identity?.Name</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">@User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</p>
+                                </div>
+                                <div class="py-2">
+                                    <a asp-area="User" asp-controller="Dashboard" asp-action="Index" 
+                                       class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700">
+                                        <i class="w-5 fas fa-th-large"></i>
+                                        <span>Bảng điều khiển</span>
+                                    </a>
+                                    <a asp-area="User" asp-controller="Profile" asp-action="Index" 
+                                       class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700">
+                                        <i class="w-5 fas fa-user"></i>
+                                        <span>Hồ sơ</span>
+                                    </a>
+                                    <a asp-area="User" asp-controller="Orders" asp-action="Index" 
+                                       class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700">
+                                        <i class="w-5 fas fa-receipt"></i>
+                                        <span>Đơn hàng của tôi</span>
+                                    </a>
+                                    @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+                                    {
+                                        <div class="my-1 border-t border-gray-200 dark:border-gray-700"></div>
+                                        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" 
+                                           class="flex items-center gap-3 px-4 py-2 text-sm text-purple-600 transition-colors hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20">
+                                            <i class="w-5 fas fa-user-shield"></i>
+                                            <span>Admin Panel</span>
+                                        </a>
+                                    }
+                                    <div class="my-1 border-t border-gray-200 dark:border-gray-700"></div>
+                                    <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                        <button type="submit" 
+                                                class="flex items-center w-full gap-3 px-4 py-2 text-sm text-left text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
+                                            <i class="w-5 fas fa-sign-out-alt"></i>
+                                            <span>Đăng xuất</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="items-center hidden gap-2 md:flex">
+                            <a asp-area="" asp-controller="Account" asp-action="Login" 
+                               class="px-4 py-2 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+                                <i class="mr-1 fas fa-sign-in-alt"></i> Đăng nhập
+                            </a>
+                            <a asp-area="" asp-controller="Account" asp-action="Register" 
+                               class="px-4 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                                <i class="mr-1 fas fa-user-plus"></i> Đăng ký
+                            </a>
+                        </div>
+                    }
+
+                    <!-- Mobile menu button -->
+                    <button type="button" @@click="mobileMenuOpen = !mobileMenuOpen" 
+                            class="flex items-center justify-center w-10 h-10 text-gray-500 rounded-lg md:hidden hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800">
+                        <i class="fas" :class="mobileMenuOpen ? 'fa-times' : 'fa-bars'"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div x-show="mobileMenuOpen" 
+                 x-cloak
+                 x-transition
+                 class="py-4 border-t border-gray-200 md:hidden dark:border-gray-700">
+                <div class="space-y-1">
+                    <a asp-area="" asp-controller="Home" asp-action="Index" 
+                       class="flex items-center gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+                        <i class="w-5 fas fa-home"></i>
+                        <span>Trang chủ</span>
+                    </a>
+                    <a asp-area="" asp-controller="Products" asp-action="Index" 
+                       class="flex items-center gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+                        <i class="w-5 fas fa-shopping-bag"></i>
+                        <span>Sản phẩm</span>
+                    </a>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+                        <a asp-area="User" asp-controller="Dashboard" asp-action="Index" 
+                           class="flex items-center gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+                            <i class="w-5 fas fa-th-large"></i>
+                            <span>Bảng điều khiển</span>
+                        </a>
+                        <a asp-area="User" asp-controller="Profile" asp-action="Index" 
+                           class="flex items-center gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+                            <i class="w-5 fas fa-user"></i>
+                            <span>Hồ sơ</span>
+                        </a>
+                        <a asp-area="User" asp-controller="Orders" asp-action="Index" 
+                           class="flex items-center gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+                            <i class="w-5 fas fa-receipt"></i>
+                            <span>Đơn hàng của tôi</span>
+                        </a>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+                        {
+                            <div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+                            <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" 
+                               class="flex items-center gap-3 px-4 py-3 text-purple-600 transition-colors rounded-lg hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20">
+                                <i class="w-5 fas fa-user-shield"></i>
+                                <span>Admin Panel</span>
+                            </a>
+                        }
+                        <div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+                        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                            <button type="submit" 
+                                    class="flex items-center w-full gap-3 px-4 py-3 text-left text-red-600 transition-colors rounded-lg hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
+                                <i class="w-5 fas fa-sign-out-alt"></i>
+                                <span>Đăng xuất</span>
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+                        <a asp-area="" asp-controller="Account" asp-action="Login" 
+                           class="flex items-center gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+                            <i class="w-5 fas fa-sign-in-alt"></i>
+                            <span>Đăng nhập</span>
+                        </a>
+                        <a asp-area="" asp-controller="Account" asp-action="Register" 
+                           class="flex items-center gap-3 px-4 py-3 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                            <i class="w-5 fas fa-user-plus"></i>
+                            <span>Đăng ký</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="p-4 mb-6 text-green-800 bg-green-100 border border-green-200 rounded-lg dark:bg-green-900/20 dark:border-green-800 dark:text-green-400" role="alert">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    <span>@TempData["SuccessMessage"]</span>
+                </div>
+            </div>
+        }
+        
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="p-4 mb-6 text-red-800 bg-red-100 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800 dark:text-red-400" role="alert">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>@TempData["ErrorMessage"]</span>
+                </div>
+            </div>
+        }
+        
+        @if (TempData["InfoMessage"] != null)
+        {
+            <div class="p-4 mb-6 text-blue-800 bg-blue-100 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400" role="alert">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-info-circle"></i>
+                    <span>@TempData["InfoMessage"]</span>
+                </div>
+            </div>
+        }
+
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-12 mt-16 bg-white border-t border-gray-200 dark:bg-gray-900 dark:border-gray-800">
+        <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
+                <!-- About -->
+                <div class="col-span-1 md:col-span-2">
+                    <h3 class="mb-4 text-2xl font-bold text-brand-600">
+                        <i class="fas fa-store mr-2"></i>MyProject
+                    </h3>
+                    <p class="mb-4 text-gray-600 dark:text-gray-400">
+                        Nền tảng mua sắm trực tuyến hàng đầu với đa dạng sản phẩm chất lượng cao và dịch vụ tận tâm.
+                    </p>
+                    <div class="flex gap-3">
+                        <a href="#" class="flex items-center justify-center w-10 h-10 text-gray-600 transition-colors rounded-lg hover:bg-brand-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-brand-900/20">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="flex items-center justify-center w-10 h-10 text-gray-600 transition-colors rounded-lg hover:bg-brand-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-brand-900/20">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="flex items-center justify-center w-10 h-10 text-gray-600 transition-colors rounded-lg hover:bg-brand-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-brand-900/20">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="flex items-center justify-center w-10 h-10 text-gray-600 transition-colors rounded-lg hover:bg-brand-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-brand-900/20">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="mb-4 font-semibold text-gray-900 dark:text-white">Liên kết</h4>
+                    <ul class="space-y-2">
+                        <li>
+                            <a asp-area="" asp-controller="Home" asp-action="Index" class="text-gray-600 transition-colors hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400">
+                                Trang chủ
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-area="" asp-controller="Home" asp-action="Products" class="text-gray-600 transition-colors hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400">
+                                Sản phẩm
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-area="" asp-controller="Home" asp-action="About" class="text-gray-600 transition-colors hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400">
+                                Về chúng tôi
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-area="" asp-controller="Home" asp-action="Contact" class="text-gray-600 transition-colors hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400">
+                                Liên hệ
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Support -->
+                <div>
+                    <h4 class="mb-4 font-semibold text-gray-900 dark:text-white">Hỗ trợ</h4>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="#" class="text-gray-600 transition-colors hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400">
+                                Chính sách đổi trả
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="text-gray-600 transition-colors hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400">
+                                Hướng dẫn mua hàng
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-gray-600 transition-colors hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400">
+                                Chính sách bảo mật
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="text-gray-600 transition-colors hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400">
+                                Điều khoản dịch vụ
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-8 mt-8 text-center border-t border-gray-200 dark:border-gray-700">
+                <p class="text-gray-600 dark:text-gray-400">
+                    © @DateTime.Now.Year MyProject. Tất cả quyền được bảo lưu.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

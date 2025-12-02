@@ -1,0 +1,151 @@
+@model IEnumerable<MyProject.Models.Shared.AttributeType>
+
+@{
+    ViewData["Title"] = "Quản lý loại thuộc tính";
+}
+
+<div class="mb-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Quản lý loại thuộc tính</h1>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Định nghĩa các loại thuộc tính cho biến thể sản phẩm (Size, Color, Weight, v.v.)
+            </p>
+        </div>
+        <a asp-action="Create" class="inline-flex items-center gap-2 px-4 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+            <i class="fas fa-plus"></i>
+            <span>Thêm loại thuộc tính</span>
+        </a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="p-4 mb-6 border-l-4 border-green-500 rounded-lg bg-green-50 dark:bg-green-900/20">
+        <div class="flex items-start gap-3">
+            <i class="text-green-600 fas fa-check-circle dark:text-green-400"></i>
+            <p class="text-sm text-green-700 dark:text-green-400">@TempData["SuccessMessage"]</p>
+        </div>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="p-4 mb-6 border-l-4 border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20">
+        <div class="flex items-start gap-3">
+            <i class="text-red-600 fas fa-exclamation-circle dark:text-red-400"></i>
+            <p class="text-sm text-red-700 dark:text-red-400">@TempData["ErrorMessage"]</p>
+        </div>
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="p-8 text-center bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="max-w-md mx-auto">
+            <div class="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-full bg-brand-100 dark:bg-brand-900/20">
+                <i class="text-2xl fas fa-tags text-brand-600 dark:text-brand-400"></i>
+            </div>
+            <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Chưa có loại thuộc tính nào</h3>
+            <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+                Tạo các loại thuộc tính như Size, Color, Weight để có thể gán cho biến thể sản phẩm
+            </p>
+            <a asp-action="Create" class="inline-flex items-center gap-2 px-4 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                <i class="fas fa-plus"></i>
+                <span>Tạo loại thuộc tính đầu tiên</span>
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="overflow-hidden bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                        <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
+                            Tên
+                        </th>
+                        <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
+                            Mô tả
+                        </th>
+                        <th class="px-6 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase dark:text-gray-400">
+                            Thứ tự hiển thị
+                        </th>
+                        <th class="px-6 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase dark:text-gray-400">
+                            Trạng thái
+                        </th>
+                        <th class="px-6 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase dark:text-gray-400">
+                            Số lượng sử dụng
+                        </th>
+                        <th class="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase dark:text-gray-400">
+                            Thao tác
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+                    @foreach (var item in Model)
+                    {
+                        <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-brand-100 dark:bg-brand-900/20">
+                                        <i class="fas fa-tag text-brand-600 dark:text-brand-400"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900 dark:text-white">@item.Name</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    @(string.IsNullOrEmpty(item.Description) ? "—" : item.Description)
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-center whitespace-nowrap">
+                                <span class="text-sm text-gray-900 dark:text-white">@item.DisplayOrder</span>
+                            </td>
+                            <td class="px-6 py-4 text-center whitespace-nowrap">
+                                @if (item.IsActive)
+                                {
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full dark:bg-green-900/20 dark:text-green-400">
+                                        <i class="fas fa-check-circle"></i>
+                                        Hoạt động
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-full dark:bg-gray-800 dark:text-gray-400">
+                                        <i class="fas fa-ban"></i>
+                                        Tạm dừng
+                                    </span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 text-center whitespace-nowrap">
+                                <span class="text-sm text-gray-900 dark:text-white">
+                                    @item.VariantAttributes.Count
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a asp-action="Edit" asp-route-id="@item.AttributeTypeId" 
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-600 transition-colors bg-blue-50 rounded-lg hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40">
+                                        <i class="fas fa-edit"></i>
+                                        Sửa
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.AttributeTypeId" 
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-600 transition-colors bg-red-50 rounded-lg hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40">
+                                        <i class="fas fa-trash"></i>
+                                        Xóa
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+}

@@ -1,0 +1,160 @@
+@{
+    ViewData["Title"] = "Bảng điều khiển";
+}
+
+<!-- Welcome Section -->
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+        Xin chào, @User.Identity?.Name! 👋
+    </h1>
+    <p class="mt-2 text-gray-600 dark:text-gray-400">
+        Chào mừng bạn đến với bảng điều khiển cá nhân
+    </p>
+</div>
+
+<!-- Quick Stats -->
+<div class="grid grid-cols-1 gap-6 mb-8 sm:grid-cols-2 lg:grid-cols-4">
+    <!-- Total Orders -->
+    <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg dark:bg-blue-900/20">
+                <i class="text-xl text-blue-600 fas fa-shopping-bag dark:text-blue-400"></i>
+            </div>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
+            0
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Tổng đơn hàng</p>
+    </div>
+
+    <!-- Pending Orders -->
+    <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-lg dark:bg-yellow-900/20">
+                <i class="text-xl text-yellow-600 fas fa-clock dark:text-yellow-400"></i>
+            </div>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
+            0
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Đang xử lý</p>
+    </div>
+
+    <!-- Completed Orders -->
+    <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg dark:bg-green-900/20">
+                <i class="text-xl text-green-600 fas fa-check-circle dark:text-green-400"></i>
+            </div>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
+            0
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Hoàn thành</p>
+    </div>
+
+    <!-- Total Spent -->
+    <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg dark:bg-purple-900/20">
+                <i class="text-xl text-purple-600 fas fa-wallet dark:text-purple-400"></i>
+            </div>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
+            0 ₫
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Tổng chi tiêu</p>
+    </div>
+</div>
+
+<!-- Recent Orders & Quick Actions -->
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <!-- Recent Orders -->
+    <div class="lg:col-span-2">
+        <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-900 dark:border-gray-800">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                    <i class="mr-2 fas fa-receipt text-brand-600"></i>
+                    Đơn hàng gần đây
+                </h2>
+                <a asp-area="User" asp-controller="Orders" asp-action="Index" 
+                   class="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400">
+                    Xem tất cả <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            <div class="space-y-4">
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <div class="flex items-center justify-center w-16 h-16 mb-4 bg-gray-100 rounded-full dark:bg-gray-800">
+                        <i class="text-2xl text-gray-400 fas fa-receipt"></i>
+                    </div>
+                    <h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">
+                        Chưa có đơn hàng nào
+                    </h3>
+                    <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+                        Bạn chưa có đơn hàng nào. Hãy bắt đầu mua sắm ngay!
+                    </p>
+                    <a asp-area="" asp-controller="Home" asp-action="Products" 
+                       class="inline-flex items-center gap-2 px-4 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span>Khám phá sản phẩm</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="lg:col-span-1">
+        <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-900 dark:border-gray-800">
+            <h2 class="mb-6 text-xl font-semibold text-gray-900 dark:text-white">
+                <i class="mr-2 fas fa-bolt text-brand-600"></i>
+                Thao tác nhanh
+            </h2>
+
+            <div class="space-y-3">
+                <a asp-area="User" asp-controller="Profile" asp-action="Index" 
+                   class="flex items-center gap-3 p-4 transition-colors border border-gray-200 rounded-lg hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                    <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg dark:bg-blue-900/20">
+                        <i class="text-blue-600 fas fa-user dark:text-blue-400"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900 dark:text-white">Hồ sơ của tôi</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Xem và cập nhật thông tin</p>
+                    </div>
+                </a>
+
+                <a asp-area="User" asp-controller="Orders" asp-action="Index" 
+                   class="flex items-center gap-3 p-4 transition-colors border border-gray-200 rounded-lg hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                    <div class="flex items-center justify-center w-10 h-10 bg-green-100 rounded-lg dark:bg-green-900/20">
+                        <i class="text-green-600 fas fa-receipt dark:text-green-400"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900 dark:text-white">Đơn hàng</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Theo dõi đơn hàng của bạn</p>
+                    </div>
+                </a>
+
+                <a asp-area="" asp-controller="Cart" asp-action="MyCart" 
+                   class="flex items-center gap-3 p-4 transition-colors border border-gray-200 rounded-lg hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                    <div class="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-lg dark:bg-purple-900/20">
+                        <i class="text-purple-600 fas fa-shopping-cart dark:text-purple-400"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900 dark:text-white">Giỏ hàng</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Xem giỏ hàng của bạn</p>
+                    </div>
+                </a>
+
+                <a asp-area="" asp-controller="Home" asp-action="Products" 
+                   class="flex items-center gap-3 p-4 transition-colors border-2 border-brand-600 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20">
+                    <div class="flex items-center justify-center w-10 h-10 bg-brand-100 rounded-lg dark:bg-brand-900/20">
+                        <i class="text-brand-600 fas fa-shopping-bag dark:text-brand-400"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-brand-600 dark:text-brand-400">Mua sắm ngay</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Khám phá sản phẩm mới</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

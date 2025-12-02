@@ -1,0 +1,132 @@
+@model MyProject.Models.Shared.AttributeType
+
+@{
+    ViewData["Title"] = "Xóa loại thuộc tính";
+}
+
+<div class="mb-6">
+    <a asp-action="Index" class="inline-flex items-center gap-2 text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+        <i class="fas fa-arrow-left"></i>
+        <span>Quay lại danh sách</span>
+    </a>
+</div>
+
+<div class="max-w-2xl">
+    <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="mb-6">
+            <div class="flex items-start gap-4">
+                <div class="flex items-center justify-center w-12 h-12 bg-red-100 rounded-lg dark:bg-red-900/20">
+                    <i class="text-xl text-red-600 fas fa-exclamation-triangle dark:text-red-400"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Xác nhận xóa loại thuộc tính</h1>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Bạn có chắc chắn muốn xóa loại thuộc tính này không?
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 mb-6 border border-gray-200 rounded-lg dark:border-gray-700">
+            <dl class="space-y-3">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Tên loại thuộc tính</dt>
+                    <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-white">@Model.Name</dd>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Mô tả</dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-gray-300">@Model.Description</dd>
+                    </div>
+                }
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Thứ tự hiển thị</dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">@Model.DisplayOrder</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Trạng thái</dt>
+                        <dd class="mt-1">
+                            @if (Model.IsActive)
+                            {
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full dark:bg-green-900/20 dark:text-green-400">
+                                    <i class="fas fa-check-circle"></i>
+                                    Hoạt động
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-full dark:bg-gray-800 dark:text-gray-400">
+                                    <i class="fas fa-ban"></i>
+                                    Tạm dừng
+                                </span>
+                            }
+                        </dd>
+                    </div>
+                </div>
+                
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Số lượng sử dụng</dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                        @Model.VariantAttributes.Count biến thể
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        @if (Model.VariantAttributes.Any())
+        {
+            <div class="p-4 mb-6 border-l-4 border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20">
+                <div class="flex items-start gap-3">
+                    <i class="mt-1 text-red-600 fas fa-exclamation-circle dark:text-red-400"></i>
+                    <div class="text-sm text-red-800 dark:text-red-300">
+                        <p class="mb-2 font-medium">Không thể xóa loại thuộc tính này!</p>
+                        <p>
+                            Loại thuộc tính "<strong>@Model.Name</strong>" đang được sử dụng bởi <strong>@Model.VariantAttributes.Count biến thể</strong>. 
+                            Bạn cần xóa hoặc cập nhật các biến thể này trước khi có thể xóa loại thuộc tính.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-3">
+                <a asp-action="Index"
+                   class="flex items-center gap-2 px-6 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Quay lại danh sách</span>
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="p-4 mb-6 border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20">
+                <div class="flex items-start gap-3">
+                    <i class="mt-1 text-yellow-600 fas fa-exclamation-triangle dark:text-yellow-400"></i>
+                    <div class="text-sm text-yellow-800 dark:text-yellow-300">
+                        <p class="font-medium">Cảnh báo!</p>
+                        <p>Thao tác này không thể hoàn tác. Loại thuộc tính "<strong>@Model.Name</strong>" sẽ bị xóa vĩnh viễn.</p>
+                    </div>
+                </div>
+            </div>
+
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="AttributeTypeId" />
+                <div class="flex gap-3">
+                    <button type="submit" 
+                            class="flex items-center gap-2 px-6 py-2 text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700">
+                        <i class="fas fa-trash"></i>
+                        <span>Xác nhận xóa</span>
+                    </button>
+                    <a asp-action="Index"
+                       class="flex items-center gap-2 px-6 py-2 text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                        <i class="fas fa-times"></i>
+                        <span>Hủy</span>
+                    </a>
+                </div>
+            </form>
+        }
+    </div>
+</div>

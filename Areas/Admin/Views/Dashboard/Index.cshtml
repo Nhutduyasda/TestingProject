@@ -1,0 +1,365 @@
+@using MyProject.Areas.Admin.Controllers
+@using MyProject.Controllers
+@model DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<!-- Metrics Cards -->
+<div class="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
+    <!-- Total Revenue -->
+    <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg dark:bg-green-900/20">
+                <i class="text-xl text-green-600 fas fa-dollar-sign dark:text-green-400"></i>
+            </div>
+            <span class="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full dark:bg-green-900/20 dark:text-green-400">
+                @(Model.RevenueGrowthPercent >= 0 ? "+" : "")@Model.RevenueGrowthPercent.ToString("0.0")%
+            </span>
+        </div>
+        <h3 class="mb-1 text-2xl font-bold text-gray-900 dark:text-white">
+            @Model.TotalRevenue.ToString("N0") ₫
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Tổng doanh thu</p>
+        <p class="mt-2 text-xs text-gray-600 dark:text-gray-500">
+            Tháng này: @Model.ThisMonthRevenue.ToString("N0") ₫
+        </p>
+    </div>
+
+    <!-- Total Orders -->
+    <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg dark:bg-blue-900/20">
+                <i class="text-xl text-blue-600 fas fa-shopping-cart dark:text-blue-400"></i>
+            </div>
+            <span class="px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900/20 dark:text-blue-400">
+                @Model.PendingOrders chờ xử lý
+            </span>
+        </div>
+        <h3 class="mb-1 text-2xl font-bold text-gray-900 dark:text-white">
+            @Model.TotalOrders
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Tổng đơn hàng</p>
+        <p class="mt-2 text-xs text-gray-600 dark:text-gray-500">
+            Hoàn thành: @Model.CompletedOrders | Hủy: @Model.CancelledOrders
+        </p>
+    </div>
+
+    <!-- Total Products -->
+    <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg dark:bg-purple-900/20">
+                <i class="text-xl text-purple-600 fas fa-box dark:text-purple-400"></i>
+            </div>
+            <span class="px-2 py-1 text-xs font-medium text-orange-800 bg-orange-100 rounded-full dark:bg-orange-900/20 dark:text-orange-400">
+                @Model.LowStockProducts cảnh báo
+            </span>
+        </div>
+        <h3 class="mb-1 text-2xl font-bold text-gray-900 dark:text-white">
+            @Model.TotalProducts
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Sản phẩm</p>
+        <p class="mt-2 text-xs text-gray-600 dark:text-gray-500">
+            Tồn kho: @Model.TotalStock | Hết hàng: @Model.OutOfStockProducts
+        </p>
+    </div>
+
+    <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-lg dark:bg-indigo-900/20">
+                <i class="text-xl text-indigo-600 fas fa-users dark:text-indigo-400"></i>
+            </div>
+            <span class="px-2 py-1 text-xs font-medium text-indigo-800 bg-indigo-100 rounded-full dark:bg-indigo-900/20 dark:text-indigo-400">
+                +@Model.NewCustomersThisMonth mới
+            </span>
+        </div>
+        <h3 class="mb-1 text-2xl font-bold text-gray-900 dark:text-white">
+            @Model.TotalUsers
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Khách hàng</p>
+        <p class="mt-2 text-xs text-gray-600 dark:text-gray-500">
+            Giá trị TB/đơn: @Model.AverageOrderValue.ToString("N0") ₫
+        </p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 gap-4 mb-6 lg:grid-cols-2 md:gap-6">
+    <!-- Sales Chart -->
+    <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                <i class="mr-2 fas fa-chart-line text-brand-600"></i>
+                Doanh thu 6 tháng gần đây
+            </h2>
+        </div>
+        <canvas id="salesChart" class="w-full" style="height: 300px;"></canvas>
+    </div>
+
+    <!-- Top Products -->
+    <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                <i class="mr-2 fas fa-fire text-brand-600"></i>
+                Top 5 sản phẩm bán chạy
+            </h2>
+        </div>
+        <div id="topProducts" class="space-y-4">
+            <div class="flex items-center justify-center h-64">
+                <div class="text-center">
+                    <i class="mb-2 text-4xl text-gray-300 fas fa-spinner fa-spin"></i>
+                    <p class="text-sm text-gray-500">Đang tải...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Low Stock & Recent Orders -->
+<div class="grid grid-cols-1 gap-4 lg:grid-cols-2 md:gap-6">
+    <!-- Low Stock Products -->
+    <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                <i class="mr-2 fas fa-exclamation-triangle text-orange-600"></i>
+                Sản phẩm sắp hết hàng
+            </h2>
+            <a asp-controller="Product" asp-action="Index" class="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400">
+                Xem tất cả <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        <div id="lowStockProducts" class="space-y-3">
+            <div class="flex items-center justify-center h-48">
+                <div class="text-center">
+                    <i class="mb-2 text-4xl text-gray-300 fas fa-spinner fa-spin"></i>
+                    <p class="text-sm text-gray-500">Đang tải...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                <i class="mr-2 fas fa-clock text-brand-600"></i>
+                Đơn hàng gần đây
+            </h2>
+            <a asp-controller="Invoice" asp-action="Index" class="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400">
+                Xem tất cả <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        <div id="recentOrders" class="space-y-3">
+            <div class="flex items-center justify-center h-48">
+                <div class="text-center">
+                    <i class="mb-2 text-4xl text-gray-300 fas fa-spinner fa-spin"></i>
+                    <p class="text-sm text-gray-500">Đang tải...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ModernValidationScripts");}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Sales Chart
+        async function loadSalesChart() {
+            try {
+                const response = await fetch('@Url.Action("GetSalesChart", "Dashboard")');
+                const data = await response.json();
+                
+                // Check if response is error object
+                if (data.error) {
+                    console.error('API Error:', data.error);
+                    document.getElementById('salesChart').insertAdjacentHTML('afterend', 
+                        '<p class="text-center text-red-500 mt-4">Lỗi tải dữ liệu biểu đồ</p>');
+                    return;
+                }
+                
+                // Check if data is array
+                if (!Array.isArray(data) || data.length === 0) {
+                    console.warn('No sales data available');
+                    document.getElementById('salesChart').insertAdjacentHTML('afterend', 
+                        '<p class="text-center text-gray-500 dark:text-gray-400 mt-4">Chưa có dữ liệu doanh thu</p>');
+                    return;
+                }
+                
+                const ctx = document.getElementById('salesChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(d => d.month),
+                        datasets: [{
+                            label: 'Doanh thu (₫)',
+                            data: data.map(d => d.sales),
+                            borderColor: '#465fff',
+                            backgroundColor: 'rgba(70, 95, 255, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString('vi-VN') + ' ₫';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading sales chart:', error);
+            }
+        }
+
+        // Top Products
+        async function loadTopProducts() {
+            try {
+                const response = await fetch('@Url.Action("GetTopProducts", "Dashboard")?count=5');
+                const products = await response.json();
+                
+                const container = document.getElementById('topProducts');
+                
+                // Check if response is error or not array
+                if (products.error || !Array.isArray(products)) {
+                    container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">Chưa có dữ liệu sản phẩm</p>';
+                    return;
+                }
+                
+                if (products.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">Chưa có sản phẩm bán chạy</p>';
+                    return;
+                }
+                
+                container.innerHTML = products.map((product, index) => `
+                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg dark:border-gray-700">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center justify-center w-8 h-8 font-bold text-white rounded-full bg-gradient-to-br from-brand-500 to-brand-600">
+                                ${index + 1}
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900 dark:text-white">${product.productName}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">${product.totalSold} đã bán</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-green-600 dark:text-green-400">
+                                ${product.revenue.toLocaleString('vi-VN')} ₫
+                            </p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading top products:', error);
+            }
+        }
+
+        // Low Stock Products
+        async function loadLowStockProducts() {
+            try {
+                const response = await fetch('@Url.Action("GetLowStockProducts", "Dashboard")');
+                const products = await response.json();
+                
+                const container = document.getElementById('lowStockProducts');
+                
+                // Check if response is error or not array
+                if (products.error || !Array.isArray(products)) {
+                    container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">Lỗi tải dữ liệu</p>';
+                    return;
+                }
+                
+                if (products.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">Không có sản phẩm sắp hết hàng</p>';
+                    return;
+                }
+                
+                container.innerHTML = products.slice(0, 5).map(product => `
+                    <div class="flex items-center justify-between p-3 border border-orange-200 rounded-lg bg-orange-50 dark:bg-orange-900/10 dark:border-orange-800">
+                        <div>
+                            <p class="font-medium text-gray-900 dark:text-white">${product.productName}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">${product.variantName}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-2 py-1 text-xs font-semibold text-orange-800 bg-orange-100 rounded-full dark:bg-orange-900/20 dark:text-orange-400">
+                                Còn ${product.stock}
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading low stock products:', error);
+            }
+        }
+
+        // Recent Orders
+        async function loadRecentOrders() {
+            try {
+                const response = await fetch('@Url.Action("GetRecentOrders", "Dashboard")?count=5');
+                const orders = await response.json();
+                
+                const container = document.getElementById('recentOrders');
+                
+                // Check if response is error or not array
+                if (orders.error || !Array.isArray(orders)) {
+                    container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">Lỗi tải đơn hàng</p>';
+                    return;
+                }
+                
+                if (orders.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">Chưa có đơn hàng</p>';
+                    return;
+                }
+                
+                container.innerHTML = orders.map(order => `
+                    <a href="@Url.Action("Details", "Invoice")?id=${order.invoiceId}" 
+                       class="flex items-center justify-between p-3 transition-colors border border-gray-200 rounded-lg hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                        <div>
+                            <p class="font-medium text-gray-900 dark:text-white">#${order.invoiceId} - ${order.customerName}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">${order.createDate}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="mb-1 font-semibold text-gray-900 dark:text-white">
+                                ${order.totalAmount.toLocaleString('vi-VN')} ₫
+                            </p>
+                            <span class="px-2 py-1 text-xs font-medium rounded-full ${getStatusClass(order.orderStatus)}">
+                                ${order.orderStatus}
+                            </span>
+                        </div>
+                    </a>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading recent orders:', error);
+            }
+        }
+
+        function getStatusClass(status) {
+            const statusMap = {
+                'Chờ xác nhận': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+                'Đã xác nhận': 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+                'Đang giao': 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
+                'Hoàn thành': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+                'Đã hủy': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+            };
+            return statusMap[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400';
+        }
+
+        // Load all data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSalesChart();
+            loadTopProducts();
+            loadLowStockProducts();
+            loadRecentOrders();
+        });
+    </script>
+}

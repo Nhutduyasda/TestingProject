@@ -1,0 +1,143 @@
+@model MyProject.Models.Shared.Supplier
+
+@{
+    ViewData["Title"] = "Xác nhận xóa nhà cung cấp";
+}
+
+<div class="mb-6">
+    <a asp-action="Index" class="inline-flex items-center gap-2 text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+        <i class="fas fa-arrow-left"></i>
+        <span>Quay lại danh sách</span>
+    </a>
+</div>
+
+<div class="max-w-2xl">
+    <div class="p-6 bg-white border border-red-200 rounded-lg dark:bg-gray-900 dark:border-red-800">
+        <div class="flex items-start gap-4 mb-6">
+            <div class="flex items-center justify-center w-12 h-12 bg-red-100 rounded-lg dark:bg-red-900/20">
+                <i class="text-xl text-red-600 fas fa-exclamation-triangle dark:text-red-400"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Xác nhận xóa nhà cung cấp</h1>
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">Hành động này không thể hoàn tác!</p>
+            </div>
+        </div>
+
+        <div class="p-4 mb-6 border border-gray-200 rounded-lg dark:border-gray-700">
+            <div class="flex items-start gap-4">
+                <div class="flex items-center justify-center flex-shrink-0 w-16 h-16 rounded-lg bg-brand-100 dark:bg-brand-900/20">
+                    <i class="text-3xl fas fa-truck text-brand-600 dark:text-brand-400"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">@Model.SupplierName</h3>
+                    
+                    <div class="mt-3 space-y-2 text-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-500 dark:text-gray-400">ID:</span>
+                            <span class="font-medium text-gray-900 dark:text-white">#@Model.SupplierId</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.Email))
+                        {
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-envelope text-gray-400"></i>
+                                <span class="text-gray-700 dark:text-gray-300">@Model.Email</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Phone))
+                        {
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-phone text-gray-400"></i>
+                                <span class="text-gray-700 dark:text-gray-300">@Model.Phone</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Address))
+                        {
+                            <div class="flex items-start gap-2 pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
+                                <i class="mt-1 fas fa-map-marker-alt text-gray-400"></i>
+                                <span class="text-gray-700 dark:text-gray-300">@Model.Address</span>
+                            </div>
+                        }
+                        <div class="flex items-center gap-2 pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
+                            <span class="text-gray-500 dark:text-gray-400">Số sản phẩm:</span>
+                            <span class="px-2 py-1 text-xs font-medium text-purple-800 bg-purple-100 rounded-full dark:bg-purple-900/20 dark:text-purple-400">
+                                @(Model.Products?.Count ?? 0)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Products?.Any() == true)
+        {
+            <!-- Warning Message -->
+            <div class="p-4 mb-6 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20">
+                <div class="flex items-start gap-3">
+                    <i class="mt-1 text-red-600 fas fa-exclamation-circle dark:text-red-400"></i>
+                    <div class="text-sm text-red-800 dark:text-red-300">
+                        <p class="font-medium mb-2">Không thể xóa nhà cung cấp này!</p>
+                        <p>Nhà cung cấp đang cung cấp <strong>@Model.Products.Count</strong> sản phẩm. Vui lòng xóa hoặc chuyển các sản phẩm sang nhà cung cấp khác trước.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product List -->
+            <div class="mb-6">
+                <h3 class="mb-3 text-sm font-medium text-gray-900 dark:text-white">Các sản phẩm từ nhà cung cấp này:</h3>
+                <div class="space-y-2 max-h-48 overflow-y-auto">
+                    @foreach (var product in Model.Products.Take(10))
+                    {
+                        <div class="flex items-center gap-2 px-3 py-2 text-sm bg-gray-50 rounded-lg dark:bg-gray-800">
+                            <i class="fas fa-box text-gray-400"></i>
+                            <span class="text-gray-700 dark:text-gray-300">@product.ProductName</span>
+                        </div>
+                    }
+                    @if (Model.Products.Count > 10)
+                    {
+                        <p class="text-xs text-gray-500 dark:text-gray-400 px-3">
+                            ... và @(Model.Products.Count - 10) sản phẩm khác
+                        </p>
+                    }
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="flex gap-3">
+                <a asp-action="Index" 
+                   class="flex items-center gap-2 px-6 py-2 text-white transition-colors bg-gray-600 rounded-lg hover:bg-gray-700">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Quay lại</span>
+                </a>
+            </div>
+        }
+        else
+        {
+            <!-- Safe to delete -->
+            <div class="p-4 mb-6 border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20">
+                <div class="flex items-start gap-3">
+                    <i class="mt-1 text-green-600 fas fa-check-circle dark:text-green-400"></i>
+                    <div class="text-sm text-green-800 dark:text-green-300">
+                        <p>Nhà cung cấp này không có sản phẩm nào và có thể xóa an toàn.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="SupplierId" />
+                <div class="flex gap-3">
+                    <button type="submit" 
+                            class="flex items-center gap-2 px-6 py-2 text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700">
+                        <i class="fas fa-trash"></i>
+                        <span>Xác nhận xóa</span>
+                    </button>
+                    <a asp-action="Index" 
+                       class="flex items-center gap-2 px-6 py-2 text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                        <i class="fas fa-times"></i>
+                        <span>Hủy</span>
+                    </a>
+                </div>
+            </form>
+        }
+    </div>
+</div>
