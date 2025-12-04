@@ -1,0 +1,173 @@
+@model IEnumerable<MyProject.Models.Shared.Combo>
+
+@{
+    ViewData["Title"] = "Danh sách Combo";
+}
+
+<!-- Page Header -->
+<div class="py-12 bg-gradient-to-r from-brand-600 to-brand-700">
+    <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <h1 class="mb-4 text-4xl font-bold text-center text-white">Combo Tiết Kiệm</h1>
+        <p class="text-center text-brand-100">Các gói combo hấp dẫn với giá ưu đãi dành cho bạn</p>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="py-12 bg-gray-50 dark:bg-gray-900">
+    <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        
+        @if (Model != null && Model.Any())
+        {
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach (var combo in Model)
+                {
+                    var imageUrl = !string.IsNullOrEmpty(combo.ImageUrl) ? combo.ImageUrl : "/images/no-image.jpg";
+                    var isAvailable = combo.IsAvailableForPurchase();
+
+                    <div class="overflow-hidden transition-shadow duration-300 bg-white rounded-lg shadow-sm group dark:bg-gray-800 hover:shadow-lg">
+                        <!-- Combo Image -->
+                        <div class="relative overflow-hidden aspect-video">
+                            <img src="@imageUrl" 
+                                 alt="@combo.ComboName"
+                                 class="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110">
+                            
+                            @if (!isAvailable)
+                            {
+                                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                                    <span class="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-full">
+                                        Tạm ngưng
+                                    </span>
+                                </div>
+                            }
+                            else if (combo.DiscountPercentage > 0)
+                            {
+                                <div class="absolute top-3 right-3">
+                                    <span class="px-3 py-1 text-xs font-bold text-white bg-red-500 rounded-full">
+                                        -@combo.DiscountPercentage.ToString("0")%
+                                    </span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Combo Info -->
+                        <div class="p-6">
+                            <h3 class="mb-2 text-xl font-bold text-gray-900 line-clamp-2 dark:text-white">
+                                @combo.ComboName
+                            </h3>
+
+                            <p class="mb-4 text-sm text-gray-500 line-clamp-2 dark:text-gray-400">
+                                @combo.Description
+                            </p>
+                            
+                            <!-- Products in Combo -->
+                            @if (combo.ComboProducts != null && combo.ComboProducts.Any())
+                            {
+                                <div class="mb-4">
+                                    <p class="mb-2 text-xs font-semibold text-gray-500 uppercase">Bao gồm:</p>
+                                    <ul class="space-y-1">
+                                        @foreach(var cp in combo.ComboProducts.Take(3))
+                                        {
+                                            <li class="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                                                <i class="mr-2 text-brand-500 fas fa-check-circle"></i>
+                                                <span>@cp.Product?.ProductName</span>
+                                            </li>
+                                        }
+                                        @if(combo.ComboProducts.Count > 3)
+                                        {
+                                            <li class="text-xs italic text-gray-500">+ @(combo.ComboProducts.Count - 3) sản phẩm khác</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+
+                            <!-- Price & Action -->
+                            <div class="flex items-end justify-between mt-4">
+                                <div>
+                                    @if (combo.OriginalPrice.HasValue && combo.OriginalPrice > combo.Price)
+                                    {
+                                        <p class="text-sm text-gray-500 line-through">
+                                            @combo.OriginalPrice.Value.ToString("N0") ₫
+                                        </p>
+                                    }
+                                    <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">
+                                        @combo.Price.ToString("N0") ₫
+                                    </p>
+                                </div>
+
+                                @if (isAvailable)
+                                {
+                                    <button onclick="addComboToCart(@combo.ComboId)" 
+                                            class="px-4 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700 focus:ring-4 focus:ring-brand-300">
+                                        <i class="mr-2 fas fa-cart-plus"></i>Thêm
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow-sm dark:bg-gray-800">
+                <div class="flex items-center justify-center w-24 h-24 mb-6 bg-gray-100 rounded-full dark:bg-gray-700">
+                    <i class="text-5xl text-gray-400 fas fa-box-open"></i>
+                </div>
+                <h3 class="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
+                    Chưa có combo nào
+                </h3>
+                <p class="text-gray-500 dark:text-gray-400">
+                    Vui lòng quay lại sau để xem các ưu đãi mới nhất
+                </p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function addComboToCart(comboId) {
+            $.ajax({
+                url: '@Url.Action("AddComboToCart", "Cart")',
+                type: 'POST',
+                data: { comboId: comboId, quantity: 1 },
+                success: function (response) {
+                    if (response.success) {
+                        // Show success toast or alert
+                        // Assuming you have a toast library or simple alert
+                        // alert(response.message);
+                        
+                        // If you have a function to update cart count in header, call it here
+                        // updateCartCount();
+                        
+                        // Reload or redirect if needed, or just show success
+                        Swal.fire({
+                            title: 'Thành công!',
+                            text: response.message,
+                            icon: 'success',
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#3b82f6'
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Thông báo',
+                            text: response.message,
+                            icon: 'warning',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        title: 'Lỗi',
+                        text: 'Có lỗi xảy ra khi thêm vào giỏ hàng',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        }
+    </script>
+    <!-- Include SweetAlert2 if not already in Layout -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+}

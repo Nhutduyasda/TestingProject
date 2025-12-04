@@ -13,8 +13,11 @@ namespace MyProject.Areas.User.Models
         
         // ✅ ONLY link to Variant - NO ProductId
         // Product information is accessed via Variant.Product
-        [Required]
-        public int VariantId { get; set; }
+        // ✅ Link to Variant (Nullable if Combo is selected)
+        public int? VariantId { get; set; }
+
+        // ✅ Link to Combo (Nullable if Variant is selected)
+        public int? ComboId { get; set; }
         
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1.")]
@@ -22,6 +25,7 @@ namespace MyProject.Areas.User.Models
         
         // Navigation properties
         public Cart Cart { get; set; } = null!;
-        public MyProject.Models.Shared.Variant Variant { get; set; } = null!;
+        public MyProject.Models.Shared.Variant? Variant { get; set; }
+        public MyProject.Models.Shared.Combo? Combo { get; set; }
     }
 }

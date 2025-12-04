@@ -161,6 +161,13 @@ namespace MyProject.Data
                 .WithMany(v => v.CartDetails)
                 .HasForeignKey(cd => cd.VariantId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CartDetail>()
+                .HasOne(cd => cd.Combo)
+                .WithMany()
+                .HasForeignKey(cd => cd.ComboId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
             
             // Invoice relationships
             modelBuilder.Entity<Invoice>()

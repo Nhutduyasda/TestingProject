@@ -10,6 +10,7 @@ namespace MyProject.Interface
         Task<Cart> GetOrCreateCartAsync(int userId);
         Task<Cart?> GetCartWithItemsAsync(int userId);
         Task AddItemAsync(int userId, int variantId, int quantity);
+        Task AddItemAsync(int userId, int? variantId, int? comboId, int quantity);
         Task RemoveItemAsync(int cartDetailId);
         Task UpdateQuantityAsync(int cartDetailId, int quantity);
         Task Add(Cart cart);

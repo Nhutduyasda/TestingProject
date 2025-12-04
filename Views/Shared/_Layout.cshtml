@@ -90,6 +90,10 @@
                        class="text-gray-700 transition-colors hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-400">
                         <i class="mr-1 fas fa-shopping-bag"></i> Sản phẩm
                     </a>
+                    <a asp-area="" asp-controller="Combo" asp-action="Index" 
+                       class="text-gray-700 transition-colors hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-400">
+                        <i class="mr-1 fas fa-box-open"></i> Combo
+                    </a>
                     <a asp-area="" asp-controller="Home" asp-action="Privacy" 
                        class="text-gray-700 transition-colors hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-400">
                         <i class="mr-1 fas fa-info-circle"></i> Về chúng tôi
@@ -204,6 +208,11 @@
                        class="flex items-center gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
                         <i class="w-5 fas fa-shopping-bag"></i>
                         <span>Sản phẩm</span>
+                    </a>
+                    <a asp-area="" asp-controller="Combo" asp-action="Index" 
+                       class="flex items-center gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+                        <i class="w-5 fas fa-box-open"></i>
+                        <span>Combo</span>
                     </a>
                     @if (User.Identity?.IsAuthenticated == true)
                     {

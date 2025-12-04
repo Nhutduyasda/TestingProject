@@ -137,9 +137,14 @@
                     {
                         <div class="flex gap-3">
                             <div class="relative flex-shrink-0 w-16 h-16 overflow-hidden border border-gray-200 rounded-md dark:border-gray-700">
-                                @if (item.Variant?.Product?.Images?.Any() == true)
+                                @if (item.VariantId.HasValue && item.Variant?.Product?.Images?.Any() == true)
                                 {
                                     <img src="@item.Variant.Product.Images.First().ImageUrl" 
+                                         class="object-cover w-full h-full">
+                                }
+                                else if (item.ComboId.HasValue && !string.IsNullOrEmpty(item.Combo?.ImageUrl))
+                                {
+                                    <img src="@item.Combo.ImageUrl" 
                                          class="object-cover w-full h-full">
                                 }
                                 else
@@ -154,13 +159,13 @@
                             </div>
                             <div class="flex-1">
                                 <h4 class="text-sm font-medium text-gray-900 line-clamp-2 dark:text-white">
-                                    @item.Variant?.Product?.ProductName
+                                    @(item.VariantId.HasValue ? item.Variant?.Product?.ProductName : item.Combo?.ComboName)
                                 </h4>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    @item.Variant?.VariantName
+                                    @(item.VariantId.HasValue ? item.Variant?.VariantName : "Combo tiết kiệm")
                                 </p>
                                 <p class="text-sm font-semibold text-brand-600 dark:text-brand-400">
-                                    @(((item.Variant?.Price ?? 0) * item.Quantity).ToString("N0")) ₫
+                                    @(((item.VariantId.HasValue ? item.Variant?.Price ?? 0 : item.Combo?.Price ?? 0) * item.Quantity).ToString("N0")) ₫
                                 </p>
                             </div>
                         </div>

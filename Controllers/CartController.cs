@@ -92,6 +92,31 @@ namespace MyProject.Controllers
             }
         }
 
+        // Add combo to cart
+        [HttpPost]
+        public async Task<IActionResult> AddComboToCart(int comboId, int quantity = 1)
+        {
+            var userId = await GetCurrentUserIdAsync();
+            if (userId == null)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập để thêm combo vào giỏ hàng!" });
+            }
+
+            try
+            {
+                await _cartService.AddItemAsync(userId.Value, null, comboId, quantity);
+                return Json(new { success = true, message = "Đã thêm combo vào giỏ hàng!" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
         // Update quantity
         [HttpPost]
         public async Task<IActionResult> UpdateQuantity(int cartDetailId, int quantity)

@@ -34,10 +34,16 @@
                         <div class="flex flex-col gap-4 p-4 border border-gray-200 rounded-lg sm:flex-row dark:border-gray-700" data-cart-detail-id="@item.CartDetailId">
                             <!-- Product Image -->
                             <div class="flex-shrink-0">
-                                @if (item.Variant?.Product?.Images?.Any() == true)
+                                @if (item.VariantId.HasValue && item.Variant?.Product?.Images?.Any() == true)
                                 {
                                     <img src="@item.Variant.Product.Images.First().ImageUrl" 
                                          alt="@item.Variant.VariantName" 
+                                         class="object-cover w-full h-48 border border-gray-200 rounded-lg sm:w-24 sm:h-24 dark:border-gray-700">
+                                }
+                                else if (item.ComboId.HasValue && !string.IsNullOrEmpty(item.Combo?.ImageUrl))
+                                {
+                                    <img src="@item.Combo.ImageUrl" 
+                                         alt="@item.Combo.ComboName" 
                                          class="object-cover w-full h-48 border border-gray-200 rounded-lg sm:w-24 sm:h-24 dark:border-gray-700">
                                 }
                                 else
@@ -54,7 +60,7 @@
                                 <div class="flex-1">
                                     <div class="flex items-start justify-between mb-2">
                                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                            @item.Variant?.Product?.ProductName
+                                            @(item.VariantId.HasValue ? item.Variant?.Product?.ProductName : item.Combo?.ComboName)
                                         </h3>
                                         <button type="button" 
                                                 onclick="removeItem(@item.CartDetailId)"
@@ -63,16 +69,22 @@
                                         </button>
                                     </div>
                                     <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                                        @item.Variant?.VariantName
+                                        @(item.VariantId.HasValue ? item.Variant?.VariantName : "Combo tiết kiệm")
                                     </p>
                                     <div class="flex flex-wrap items-center gap-3">
                                         <span class="text-xl font-bold text-brand-600 dark:text-brand-400">
-                                            @((item.Variant?.Price ?? 0).ToString("N0")) ₫
+                                            @((item.VariantId.HasValue ? item.Variant?.Price ?? 0 : item.Combo?.Price ?? 0).ToString("N0")) ₫
                                         </span>
-                                        @if (item.Variant?.Quanlity < 10)
+                                        @if (item.VariantId.HasValue && item.Variant?.Quanlity < 10)
                                         {
                                             <span class="px-2 py-1 text-xs font-medium text-orange-800 bg-orange-100 rounded-full dark:bg-orange-900/20 dark:text-orange-400">
                                                 Còn @item.Variant.Quanlity sản phẩm
+                                            </span>
+                                        }
+                                        else if (item.ComboId.HasValue && item.Combo?.AvailableQuantity.HasValue == true && item.Combo.AvailableQuantity < 10)
+                                        {
+                                            <span class="px-2 py-1 text-xs font-medium text-orange-800 bg-orange-100 rounded-full dark:bg-orange-900/20 dark:text-orange-400">
+                                                Còn @item.Combo.AvailableQuantity combo
                                             </span>
                                         }
                                     </div>
@@ -99,7 +111,7 @@
                                     <div class="text-right">
                                         <p class="text-sm text-gray-500 dark:text-gray-400">Tổng</p>
                                         <p class="text-lg font-bold text-gray-900 dark:text-white">
-                                            @(((item.Variant?.Price ?? 0) * item.Quantity).ToString("N0")) ₫
+                                            @(((item.VariantId.HasValue ? item.Variant?.Price ?? 0 : item.Combo?.Price ?? 0) * item.Quantity).ToString("N0")) ₫
                                         </p>
                                     </div>
                                 </div>

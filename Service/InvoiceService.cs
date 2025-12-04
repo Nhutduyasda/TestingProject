@@ -46,6 +46,7 @@ namespace MyProject.Service
                 .Where(i => !i.IsDeleted)
                 .Include(i => i.User)
                 .Include(i => i.InvoiceDetails).ThenInclude(d => d.Variant)
+                .Include(i => i.InvoiceDetails).ThenInclude(d => d.Combo)
                 .ToListAsync();
         }
 
@@ -55,6 +56,7 @@ namespace MyProject.Service
                 .Where(i => i.UserId == userId && !i.IsDeleted)
                 .Include(i => i.User)
                 .Include(i => i.InvoiceDetails).ThenInclude(d => d.Variant)
+                .Include(i => i.InvoiceDetails).ThenInclude(d => d.Combo)
                 .ToListAsync();
         }
 
@@ -64,6 +66,8 @@ namespace MyProject.Service
                 .Include(i => i.User)
                 .Include(i => i.InvoiceDetails!)
                     .ThenInclude(d => d.Variant)
+                .Include(i => i.InvoiceDetails!)
+                    .ThenInclude(d => d.Combo)
                 .FirstOrDefaultAsync(i => i.InvoiceId == id && !i.IsDeleted);
         }
 
@@ -99,16 +103,18 @@ namespace MyProject.Service
                 .Include(c => c.CartDetails!)
                     .ThenInclude(cd => cd.Variant)
                     .ThenInclude(v => v!.Product)
+                .Include(c => c.CartDetails!)
+                    .ThenInclude(cd => cd.Combo)
                 .FirstOrDefaultAsync(c => c.CartId == cartId);
 
             if (cart == null) throw new InvalidOperationException("Cart not found");
             if (cart.CartDetails == null || cart.CartDetails.Count == 0)
                 throw new InvalidOperationException("Cart is empty");
 
-            // Validate and load variants
+            // Validate and load items
             foreach (var cartDetail in cart.CartDetails)
             {
-                if (cartDetail.Variant == null)
+                if (cartDetail.VariantId.HasValue && cartDetail.Variant == null)
                 {
                     var variant = await _context.Variants.FindAsync(cartDetail.VariantId);
                     if (variant == null)
@@ -116,6 +122,19 @@ namespace MyProject.Service
                         throw new InvalidOperationException($"Variant with ID {cartDetail.VariantId} not found");
                     }
                     cartDetail.Variant = variant;
+                }
+                else if (cartDetail.ComboId.HasValue && cartDetail.Combo == null)
+                {
+                    var combo = await _context.Combos.FindAsync(cartDetail.ComboId);
+                    if (combo == null)
+                    {
+                        throw new InvalidOperationException($"Combo with ID {cartDetail.ComboId} not found");
+                    }
+                    if (!combo.IsActive || (combo.AvailableQuantity.HasValue && combo.AvailableQuantity < cartDetail.Quantity))
+                    {
+                         throw new InvalidOperationException($"Combo {combo.ComboName} is not available or insufficient quantity");
+                    }
+                    cartDetail.Combo = combo;
                 }
             }
 
@@ -130,16 +149,32 @@ namespace MyProject.Service
 
             foreach (var item in cart.CartDetails)
             {
-                if (item.Variant == null) continue;
-
-                var detail = new InvoiceDetail
+                if (item.VariantId.HasValue)
                 {
-                    VariantId = item.VariantId,
-                    ComboId = null,
-                    Quantity = item.Quantity,
-                    UnitPrice = item.Variant.Price
-                };
-                invoice.InvoiceDetails.Add(detail);
+                    if (item.Variant == null) continue;
+                    var detail = new InvoiceDetail
+                    {
+                        VariantId = item.VariantId,
+                        ComboId = null,
+                        Quantity = item.Quantity,
+                        UnitPrice = item.Variant.Price,
+                        ItemType = "Product"
+                    };
+                    invoice.InvoiceDetails.Add(detail);
+                }
+                else if (item.ComboId.HasValue)
+                {
+                    if (item.Combo == null) continue;
+                    var detail = new InvoiceDetail
+                    {
+                        VariantId = null,
+                        ComboId = item.ComboId,
+                        Quantity = item.Quantity,
+                        UnitPrice = item.Combo.Price,
+                        ItemType = "Combo"
+                    };
+                    invoice.InvoiceDetails.Add(detail);
+                }
             }
 
             if (!invoice.InvoiceDetails.Any())
@@ -155,19 +190,36 @@ namespace MyProject.Service
             {
                 _context.Invoices.Add(invoice);
                 
-                // Update variant stock with concurrency check
+                // Update stock with concurrency check
                 foreach (var detail in invoice.InvoiceDetails)
                 {
-                    var variant = await _context.Variants.FindAsync(detail.VariantId);
-                    if (variant == null) throw new InvalidOperationException($"Variant {detail.VariantId} not found");
-
-                    if (variant.Quanlity < detail.Quantity)
+                    if (detail.VariantId.HasValue)
                     {
-                        throw new InvalidOperationException($"Không đủ số lượng cho sản phẩm {variant.VariantName}. Còn lại: {variant.Quanlity}");
-                    }
+                        var variant = await _context.Variants.FindAsync(detail.VariantId);
+                        if (variant == null) throw new InvalidOperationException($"Variant {detail.VariantId} not found");
 
-                    variant.Quanlity -= detail.Quantity;
-                    _context.Entry(variant).OriginalValues["RowVersion"] = variant.RowVersion;
+                        if (variant.Quanlity < detail.Quantity)
+                        {
+                            throw new InvalidOperationException($"Không đủ số lượng cho sản phẩm {variant.VariantName}. Còn lại: {variant.Quanlity}");
+                        }
+
+                        variant.Quanlity -= detail.Quantity;
+                        _context.Entry(variant).OriginalValues["RowVersion"] = variant.RowVersion;
+                    }
+                    else if (detail.ComboId.HasValue)
+                    {
+                        var combo = await _context.Combos.FindAsync(detail.ComboId);
+                        if (combo == null) throw new InvalidOperationException($"Combo {detail.ComboId} not found");
+                        
+                        if (combo.AvailableQuantity.HasValue)
+                        {
+                            if (combo.AvailableQuantity < detail.Quantity)
+                            {
+                                throw new InvalidOperationException($"Không đủ số lượng cho combo {combo.ComboName}. Còn lại: {combo.AvailableQuantity}");
+                            }
+                            combo.AvailableQuantity -= detail.Quantity;
+                        }
+                    }
                 }
 
                 // Clear cart

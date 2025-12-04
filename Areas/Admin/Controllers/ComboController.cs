@@ -32,13 +32,13 @@ namespace MyProject.Areas.Admin.Controllers
         {
             ViewBag.Categories = new SelectList(_context.Categories, "CategoryId", "CategoryName");
             
-            // Fetch products with their variants to get the price
             var products = _context.Products
                 .Include(p => p.Variants)
-                .ToList() // Client-side evaluation for complex projection if needed, or just simple
+                .ToList() 
                 .Select(p => new {
                     p.ProductId,
-                    Name = p.ProductName + " - " + (p.Variants.Any() ? p.Variants.Min(v => v.Price).ToString("C") : "N/A")
+                    Name = p.ProductName + " - " + (p.Variants.Any() ? p.Variants.Min(v => v.Price).ToString("C") : "N/A"),
+                    Price = p.Variants.Any() ? p.Variants.Min(v => v.Price) : 0
                 }).ToList();
 
             ViewBag.Products = products;
@@ -112,7 +112,8 @@ namespace MyProject.Areas.Admin.Controllers
                 .ToList()
                 .Select(p => new {
                     p.ProductId,
-                    Name = p.ProductName + " - " + (p.Variants.Any() ? p.Variants.Min(v => v.Price).ToString("C") : "N/A")
+                    Name = p.ProductName + " - " + (p.Variants.Any() ? p.Variants.Min(v => v.Price).ToString("C") : "N/A"),
+                    Price = p.Variants.Any() ? p.Variants.Min(v => v.Price) : 0
                 }).ToList();
             ViewBag.Products = productsList;
             
@@ -143,7 +144,8 @@ namespace MyProject.Areas.Admin.Controllers
                 .ToList()
                 .Select(p => new {
                     p.ProductId,
-                    Name = p.ProductName + " - " + (p.Variants.Any() ? p.Variants.Min(v => v.Price).ToString("C") : "N/A")
+                    Name = p.ProductName + " - " + (p.Variants.Any() ? p.Variants.Min(v => v.Price).ToString("C") : "N/A"),
+                    Price = p.Variants.Any() ? p.Variants.Min(v => v.Price) : 0
                 }).ToList();
             ViewBag.Products = products;
 
@@ -266,7 +268,8 @@ namespace MyProject.Areas.Admin.Controllers
                 .ToList()
                 .Select(p => new {
                     p.ProductId,
-                    Name = p.ProductName + " - " + (p.Variants.Any() ? p.Variants.Min(v => v.Price).ToString("C") : "N/A")
+                    Name = p.ProductName + " - " + (p.Variants.Any() ? p.Variants.Min(v => v.Price).ToString("C") : "N/A"),
+                    Price = p.Variants.Any() ? p.Variants.Min(v => v.Price) : 0
                 }).ToList();
             ViewBag.Products = productsList;
             

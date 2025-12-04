@@ -20,6 +20,7 @@ namespace MyProject.Service
                 .Include(cd => cd.Variant)
                     .ThenInclude(v => v.Product)
                         .ThenInclude(p => p.Images)
+                .Include(cd => cd.Combo)
                 .ToListAsync();
         }
 
@@ -29,6 +30,7 @@ namespace MyProject.Service
                 .Include(cd => cd.Variant)
                     .ThenInclude(v => v.Product)
                         .ThenInclude(p => p.Images)
+                .Include(cd => cd.Combo)
                 .FirstOrDefaultAsync(cd => cd.CartDetailId == id);
         }
 
@@ -38,6 +40,7 @@ namespace MyProject.Service
                 .Include(cd => cd.Variant)
                     .ThenInclude(v => v.Product)
                         .ThenInclude(p => p.Images)
+                .Include(cd => cd.Combo)
                 .Where(cd => cd.CartId == cartId)
                 .ToListAsync();
         }
@@ -45,7 +48,8 @@ namespace MyProject.Service
         public async Task<decimal> GetTotalPriceByCartIdAsync(int cartId)
         {
             var cartDetails = await GetByCartIdAsync(cartId);
-            return cartDetails.Sum(cd => cd.Variant.Price * cd.Quantity);
+            return cartDetails.Sum(cd => 
+                (cd.VariantId.HasValue ? cd.Variant.Price : (cd.ComboId.HasValue ? cd.Combo.Price : 0)) * cd.Quantity);
         }
 
         public async Task<int> GetTotalItemsByCartIdAsync(int cartId)

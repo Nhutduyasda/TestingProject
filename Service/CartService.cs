@@ -32,6 +32,8 @@ namespace MyProject.Service
                 .Include(c => c.CartDetails!)
                     .ThenInclude(cd => cd.Variant)
                     .ThenInclude(v => v.Product)
+                .Include(c => c.CartDetails!)
+                    .ThenInclude(cd => cd.Combo)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
         }
 
@@ -53,19 +55,47 @@ namespace MyProject.Service
                 .Include(c => c.CartDetails!)
                     .ThenInclude(d => d.Variant)
                     .ThenInclude(v => v.Product)
+                .Include(c => c.CartDetails!)
+                    .ThenInclude(d => d.Combo)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
         }
 
         public async Task AddItemAsync(int userId, int variantId, int quantity)
         {
-            if (quantity < 1) quantity = 1;
+            await AddItemAsync(userId, variantId, null, quantity);
+        }
 
-            var variant = await _context.Variants.FirstOrDefaultAsync(v => v.VariantId == variantId)
-                          ?? throw new InvalidOperationException("Variant not found");
+        public async Task AddItemAsync(int userId, int? variantId, int? comboId, int quantity)
+        {
+            if (quantity < 1) quantity = 1;
+            if (variantId == null && comboId == null) throw new ArgumentException("Either VariantId or ComboId must be provided");
+
+            // Verify item exists
+            if (variantId.HasValue)
+            {
+                var variant = await _context.Variants.FirstOrDefaultAsync(v => v.VariantId == variantId)
+                              ?? throw new InvalidOperationException("Variant not found");
+            }
+            else if (comboId.HasValue)
+            {
+                var combo = await _context.Combos.FirstOrDefaultAsync(c => c.ComboId == comboId)
+                            ?? throw new InvalidOperationException("Combo not found");
+                if (!combo.IsActive) throw new InvalidOperationException("Combo is not active");
+            }
 
             var cart = await GetOrCreateCartAsync(userId);
-            var existing = await _context.CartDetails
-                .FirstOrDefaultAsync(d => d.CartId == cart.CartId && d.VariantId == variantId);
+            
+            CartDetail? existing = null;
+            if (variantId.HasValue)
+            {
+                existing = await _context.CartDetails
+                    .FirstOrDefaultAsync(d => d.CartId == cart.CartId && d.VariantId == variantId);
+            }
+            else if (comboId.HasValue)
+            {
+                existing = await _context.CartDetails
+                    .FirstOrDefaultAsync(d => d.CartId == cart.CartId && d.ComboId == comboId);
+            }
 
             if (existing != null)
             {
@@ -77,6 +107,7 @@ namespace MyProject.Service
                 {
                     CartId = cart.CartId,
                     VariantId = variantId,
+                    ComboId = comboId,
                     Quantity = quantity
                 };
                 _context.CartDetails.Add(detail);
