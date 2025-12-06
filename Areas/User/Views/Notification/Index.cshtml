@@ -1,0 +1,96 @@
+@model IEnumerable<MyProject.Areas.User.Models.Notification>
+
+@{
+    ViewData["Title"] = "Thông báo của tôi";
+}
+
+<div class="py-12 bg-gray-50 dark:bg-gray-900">
+    <div class="px-4 mx-auto max-w-4xl sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Thông báo</h1>
+            <button onclick="markAllRead()" class="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
+                Đánh dấu tất cả là đã đọc
+            </button>
+        </div>
+
+        <div class="space-y-4">
+            @if (Model.Any())
+            {
+                @foreach (var item in Model)
+                {
+                    <div class="relative p-4 transition-colors bg-white border rounded-lg shadow-sm group dark:bg-gray-800 @(item.IsRead ? "border-gray-200 dark:border-gray-700" : "border-brand-200 bg-brand-50 dark:bg-brand-900/10 dark:border-brand-800")">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center w-10 h-10 rounded-full @(item.IsRead ? "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400" : "bg-brand-100 text-brand-600 dark:bg-brand-900 dark:text-brand-400")">
+                                    <i class="fas @(item.Type == "Order" ? "fa-shopping-bag" : item.Type == "Review" ? "fa-star" : "fa-bell")"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between mb-1">
+                                    <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                                        @item.Title
+                                    </h3>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                                        @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">@item.Message</p>
+                                
+                                @if (item.RelatedInvoiceId.HasValue)
+                                {
+                                    <a asp-controller="Invoice" asp-action="Details" asp-route-id="@item.RelatedInvoiceId" asp-area="Admin" class="inline-block mt-2 text-sm font-medium text-brand-600 hover:underline">
+                                        Xem đơn hàng
+                                    </a>
+                                }
+                                else if (item.RelatedProductId.HasValue)
+                                {
+                                    <a asp-controller="Products" asp-action="Details" asp-route-id="@item.RelatedProductId" asp-area="" class="inline-block mt-2 text-sm font-medium text-brand-600 hover:underline">
+                                        Xem sản phẩm
+                                    </a>
+                                }
+                            </div>
+                            @if (!item.IsRead)
+                            {
+                                <button onclick="markRead(@item.NotificationId, this)" class="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-400 hover:text-brand-600" title="Đánh dấu đã đọc">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="py-12 text-center">
+                    <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full dark:bg-gray-800">
+                        <i class="text-3xl text-gray-400 far fa-bell-slash"></i>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400">Bạn không có thông báo nào.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function markRead(id, btn) {
+            $.post('@Url.Action("MarkAsRead", "Notification")', { id: id }, function(res) {
+                if (res.success) {
+                    $(btn).closest('.group').removeClass('border-brand-200 bg-brand-50 dark:bg-brand-900/10 dark:border-brand-800').addClass('border-gray-200 dark:border-gray-700');
+                    $(btn).remove();
+                    // Update badge count logic here if needed
+                }
+            });
+        }
+
+        function markAllRead() {
+            if (!confirm('Đánh dấu tất cả là đã đọc?')) return;
+            $.post('@Url.Action("MarkAllAsRead", "Notification")', function(res) {
+                if (res.success) {
+                    location.reload();
+                }
+            });
+        }
+    </script>
+}

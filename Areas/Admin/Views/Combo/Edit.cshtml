@@ -90,47 +90,21 @@
                 <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-xl dark:bg-gray-900 dark:border-gray-800">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Sản phẩm trong Combo</h3>
-                        <button type="button" onclick="addProductRow()" class="px-3 py-1.5 text-sm font-medium text-brand-600 bg-brand-50 rounded-lg hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-400 dark:hover:bg-brand-900/50 transition-colors">
-                            <i class="mr-1 fas fa-plus"></i> Thêm sản phẩm
-                        </button>
+                        <div class="relative w-64">
+                            <input type="text" id="productSearch" placeholder="Tìm kiếm sản phẩm..." class="w-full px-4 py-2 pl-10 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" onkeyup="filterProducts()" />
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="text-gray-400 fas fa-search"></i>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div id="productsContainer" class="space-y-3">
-                        <!-- Dynamic product rows will be added here -->
-                        @foreach (var item in Model.ComboProducts)
-                        {
-                            <div class="flex items-start gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50 product-row dark:bg-gray-800 dark:border-gray-700">
-                                <div class="flex-1">
-                                    <label class="block mb-1 text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Sản phẩm</label>
-                                    <select name="productIds" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-900 dark:border-gray-600 dark:text-white" required onchange="calculatePrice()">
-                                        @foreach (var product in ViewBag.Products)
-                                        {
-                                            var pId = product.GetType().GetProperty("ProductId").GetValue(product, null);
-                                            var pName = product.GetType().GetProperty("Name").GetValue(product, null);
-                                            var pPrice = product.GetType().GetProperty("Price").GetValue(product, null);
-
-                                            if (pId.ToString() == item.ProductId.ToString())
-                                            {
-                                                <option value="@pId" data-price="@pPrice" selected>@pName</option>
-                                            }
-                                            else
-                                            {
-                                                <option value="@pId" data-price="@pPrice">@pName</option>
-                                            }
-                                        }
-                                    </select>
-                                </div>
-                                <div class="w-32">
-                                    <label class="block mb-1 text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Số lượng</label>
-                                    <input type="number" name="quantities" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-900 dark:border-gray-600 dark:text-white" value="@item.Quantity" min="1" required onchange="calculatePrice()" onkeyup="calculatePrice()" />
-                                </div>
-                                <div class="pt-5">
-                                    <button type="button" class="p-2 text-red-500 transition-colors rounded-lg hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20" onclick="removeProductRow(this)" title="Xóa dòng">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        }
+                    <div id="productsGrid" class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 max-h-[600px] overflow-y-auto p-1">
+                        <!-- Dynamic product cards will be added here -->
+                    </div>
+                    
+                    <div id="noProductsFound" class="hidden py-8 text-center text-gray-500">
+                        <i class="mb-2 text-3xl fas fa-box-open"></i>
+                        <p>Không tìm thấy sản phẩm nào</p>
                     </div>
                 </div>
             </div>
@@ -201,6 +175,142 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     
     <script>
+        var allProducts = @Html.Raw(Json.Serialize(ViewBag.Products));
+        var existingComboProducts = @Html.Raw(Json.Serialize(Model.ComboProducts.Select(cp => new { variantId = cp.VariantId, quantity = cp.Quantity })));
+        var allVariants = [];
+
+        // Flatten products to variants
+        allProducts.forEach(p => {
+            if (p.variants && p.variants.length > 0) {
+                p.variants.forEach(v => {
+                    allVariants.push({
+                        variantId: v.variantId,
+                        variantName: v.variantName,
+                        price: v.price,
+                        productName: p.name,
+                        imageUrl: p.imageUrl,
+                        productId: p.productId
+                    });
+                });
+            }
+        });
+
+        function renderProducts() {
+            var container = $('#productsGrid');
+            container.empty();
+            
+            allVariants.forEach(function(v) {
+                var priceFormatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v.price);
+                var displayName = `${v.productName} - ${v.variantName}`;
+                
+                // Check if this variant is selected
+                var existing = existingComboProducts.find(cp => cp.variantId == v.variantId);
+                var isSelected = !!existing;
+                var quantity = existing ? existing.quantity : 1;
+                
+                var html = `
+                    <div class="relative overflow-hidden transition-all border border-gray-200 rounded-lg group hover:shadow-md dark:border-gray-700 dark:bg-gray-800 product-card ${isSelected ? 'ring-1 ring-brand-500' : ''}" data-name="${displayName.toLowerCase()}">
+                        <div class="absolute top-2 right-2 z-10">
+                            <input type="checkbox" name="variantIds" value="${v.variantId}" class="w-5 h-5 text-brand-600 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 product-checkbox" onchange="toggleProduct(this, ${v.variantId}, ${v.price})" ${isSelected ? 'checked' : ''} />
+                        </div>
+                        
+                        <div class="aspect-square bg-gray-100 dark:bg-gray-700">
+                            <img src="${v.imageUrl}" alt="${displayName}" class="object-cover w-full h-full" onerror="this.src='/images/default-product.png'" />
+                        </div>
+                        
+                        <div class="p-3">
+                            <h4 class="mb-1 text-sm font-medium text-gray-900 line-clamp-2 dark:text-white" title="${displayName}">${displayName}</h4>
+                            <p class="text-sm font-bold text-brand-600 dark:text-brand-400">${priceFormatted}</p>
+                            
+                            <div class="mt-3 quantity-control ${isSelected ? '' : 'hidden'}" id="qty-control-${v.variantId}">
+                                <label class="block mb-1 text-xs text-gray-500">Số lượng</label>
+                                <input type="number" name="quantities" value="${quantity}" min="1" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-brand-500 dark:bg-gray-900 dark:border-gray-600 dark:text-white" onchange="calculatePrice()" onkeyup="calculatePrice()" ${isSelected ? '' : 'disabled'} />
+                            </div>
+                        </div>
+                        
+                        <!-- Selected Overlay -->
+                        <div class="absolute inset-0 border-2 border-brand-500 rounded-lg pointer-events-none ${isSelected ? '' : 'opacity-0'} product-overlay" id="overlay-${v.variantId}"></div>
+                    </div>
+                `;
+                container.append(html);
+            });
+        }
+
+        function toggleProduct(checkbox, variantId, price) {
+            var card = $(checkbox).closest('.product-card');
+            var qtyControl = $(`#qty-control-${variantId}`);
+            var qtyInput = qtyControl.find('input');
+            var overlay = $(`#overlay-${variantId}`);
+            
+            if (checkbox.checked) {
+                qtyControl.removeClass('hidden');
+                qtyInput.prop('disabled', false);
+                overlay.removeClass('opacity-0');
+                card.addClass('ring-1 ring-brand-500');
+            } else {
+                qtyControl.addClass('hidden');
+                qtyInput.prop('disabled', true);
+                qtyInput.val(1); // Reset quantity
+                overlay.addClass('opacity-0');
+                card.removeClass('ring-1 ring-brand-500');
+            }
+            
+            calculatePrice();
+        }
+
+        function filterProducts() {
+            var term = $('#productSearch').val().toLowerCase();
+            var hasVisible = false;
+            
+            $('.product-card').each(function() {
+                var name = $(this).data('name');
+                if (name.includes(term)) {
+                    $(this).removeClass('hidden');
+                    hasVisible = true;
+                } else {
+                    $(this).addClass('hidden');
+                }
+            });
+            
+            if (!hasVisible) {
+                $('#noProductsFound').removeClass('hidden');
+            } else {
+                $('#noProductsFound').addClass('hidden');
+            }
+        }
+
+        function calculatePrice() {
+            var totalOriginal = 0;
+            
+            $('.product-checkbox:checked').each(function() {
+                var variantId = $(this).val();
+                var variant = allVariants.find(v => v.variantId == variantId);
+                
+                if (variant) {
+                    var qtyInput = $(`#qty-control-${variantId} input`);
+                    var quantity = parseInt(qtyInput.val()) || 0;
+                    totalOriginal += variant.price * quantity;
+                }
+            });
+
+            // Update Original Price display
+            $('#OriginalPrice').val(new Intl.NumberFormat('vi-VN').format(totalOriginal));
+
+            // Calculate Discounted Price
+            // Note: For Edit, we might want to keep the manually entered price or recalculate.
+            // But the requirement is to calculate based on discount.
+            // If the user manually changed the price, we might overwrite it here if they change products.
+            // For now, let's stick to the logic: Original Price is sum of products.
+            // Sale Price is manually entered, but if discount is selected, it auto-updates.
+            
+            var discountType = $('#DiscountSelect').val();
+            if (discountType !== 'custom') {
+                var discountPercent = parseFloat(discountType);
+                var finalPrice = totalOriginal * (1 - discountPercent / 100);
+                $('#Price').val(finalPrice);
+            }
+        }
+
         function previewImage(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
@@ -212,71 +322,9 @@
             }
         }
 
-        function addProductRow() {
-            var products = @Html.Raw(Json.Serialize(ViewBag.Products));
-            
-            var options = '<option value="" data-price="0">-- Chọn sản phẩm --</option>';
-            products.forEach(function(p) {
-                options += `<option value="${p.productId}" data-price="${p.price}">${p.name}</option>`;
-            });
-
-            var html = `
-                <div class="flex items-start gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50 product-row dark:bg-gray-800 dark:border-gray-700">
-                    <div class="flex-1">
-                        <label class="block mb-1 text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Sản phẩm</label>
-                        <select name="productIds" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-900 dark:border-gray-600 dark:text-white" required onchange="calculatePrice()">
-                            ${options}
-                        </select>
-                    </div>
-                    <div class="w-32">
-                        <label class="block mb-1 text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Số lượng</label>
-                        <input type="number" name="quantities" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-900 dark:border-gray-600 dark:text-white" value="1" min="1" required onchange="calculatePrice()" onkeyup="calculatePrice()" />
-                    </div>
-                    <div class="pt-5">
-                        <button type="button" class="p-2 text-red-500 transition-colors rounded-lg hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20" onclick="removeProductRow(this)" title="Xóa dòng">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            $('#productsContainer').append(html);
-        }
-
-        function removeProductRow(btn) {
-            $(btn).closest('.product-row').remove();
-            calculatePrice();
-        }
-
-        function calculatePrice() {
-            var totalOriginal = 0;
-            
-            $('.product-row').each(function() {
-                var select = $(this).find('select[name="productIds"]');
-                var quantityInput = $(this).find('input[name="quantities"]');
-                
-                var price = parseFloat(select.find(':selected').data('price')) || 0;
-                var quantity = parseInt(quantityInput.val()) || 0;
-                
-                totalOriginal += price * quantity;
-            });
-
-            // Update Original Price display
-            $('#OriginalPrice').val(new Intl.NumberFormat('vi-VN').format(totalOriginal));
-
-            // Calculate Discounted Price
-            var discountType = $('#DiscountSelect').val();
-            var finalPrice = totalOriginal;
-
-            if (discountType !== 'custom') {
-                var discountPercent = parseFloat(discountType);
-                finalPrice = totalOriginal * (1 - discountPercent / 100);
-                $('#Price').val(finalPrice);
-            }
-        }
-
-        // Initialize price on load
+        // Initialize
         $(document).ready(function() {
+            renderProducts();
             calculatePrice();
         });
     </script>

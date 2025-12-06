@@ -3,15 +3,19 @@ using MyProject.Data;
 using MyProject.Interface;
 using MyProject.Models.Shared;
 
+using MyProject.Areas.Admin.Models;
+
 namespace MyProject.Service
 {
     public class VariantService : IVariantService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IInventoryService _inventoryService;
 
-        public VariantService(ApplicationDbContext context)
+        public VariantService(ApplicationDbContext context, IInventoryService inventoryService)
         {
             _context = context;
+            _inventoryService = inventoryService;
         }
 
         public async Task<IEnumerable<Variant>> GetAllAsync()
@@ -72,8 +76,11 @@ namespace MyProject.Service
             var variant = await _context.Variants.FindAsync(variantId);
             if (variant != null)
             {
-                variant.Quanlity = quantity;
-                await _context.SaveChangesAsync();
+                int diff = quantity - variant.Quanlity;
+                if (diff != 0)
+                {
+                    await _inventoryService.LogStockChangeAsync(variantId, diff, InventoryAction.Adjust, "Manual Update via Service");
+                }
             }
         }
     }

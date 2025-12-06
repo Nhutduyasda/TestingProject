@@ -42,17 +42,31 @@ namespace MyProject.Areas.Admin.Controllers
                 var endDate = DateTime.Now;
                 var startDate = endDate.AddMonths(-months);
 
-                var salesData = await _context.Invoices
+                // Fetch raw data first to avoid EF Core translation issues with grouping/formatting
+                var rawData = await _context.Invoices
                     .Where(i => i.CreatedAt >= startDate && i.CreatedAt <= endDate && !i.IsDeleted)
+                    .Select(i => new { i.CreatedAt, i.TotalAmount })
+                    .ToListAsync();
+
+                var salesData = rawData
                     .GroupBy(i => new { i.CreatedAt.Year, i.CreatedAt.Month })
                     .Select(g => new
                     {
                         Month = $"T{g.Key.Month}/{g.Key.Year}",
                         Sales = g.Sum(i => i.TotalAmount),
-                        Orders = g.Count()
+                        Orders = g.Count(),
+                        // Keep raw values for sorting
+                        Year = g.Key.Year,
+                        MonthNum = g.Key.Month
                     })
-                    .OrderBy(x => x.Month)
-                    .ToListAsync();
+                    .OrderBy(x => x.Year).ThenBy(x => x.MonthNum)
+                    .Select(x => new 
+                    {
+                        x.Month,
+                        x.Sales,
+                        x.Orders
+                    })
+                    .ToList();
 
                 return Json(salesData);
             }

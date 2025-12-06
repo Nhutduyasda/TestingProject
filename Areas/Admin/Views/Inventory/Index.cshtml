@@ -1,0 +1,142 @@
+@model IEnumerable<MyProject.Areas.Admin.Models.InventoryLog>
+@using MyProject.Areas.Admin.Models
+
+@{
+    ViewData["Title"] = "Quản lý kho hàng";
+}
+
+<div class="mb-6">
+    <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Lịch sử kho hàng</h1>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Theo dõi biến động số lượng tồn kho</p>
+        </div>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
+        <span class="font-medium">Thành công!</span> @TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+        <span class="font-medium">Lỗi!</span> @TempData["Error"]
+    </div>
+}
+
+<!-- Adjustment Form (Only if Variant Selected) -->
+@if (ViewBag.CurrentVariantId != null)
+{
+    <div class="p-6 mb-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+        <h3 class="mb-4 text-lg font-medium text-gray-900 dark:text-white">Điều chỉnh kho cho Variant #@ViewBag.CurrentVariantId</h3>
+        <form asp-action="AdjustStock" method="post" class="flex flex-col gap-4 md:flex-row md:items-end">
+            <input type="hidden" name="variantId" value="@ViewBag.CurrentVariantId" />
+            
+            <div class="flex-1">
+                <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Số lượng thay đổi (+ nhập, - xuất)</label>
+                <input type="number" name="quantityChange" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" placeholder="VD: 10 hoặc -5">
+            </div>
+            
+            <div class="flex-[2]">
+                <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Lý do</label>
+                <input type="text" name="reason" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" placeholder="VD: Nhập hàng mới, Hư hỏng...">
+            </div>
+            
+            <button type="submit" class="px-6 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                Lưu điều chỉnh
+            </button>
+        </form>
+    </div>
+}
+
+<!-- Logs Table -->
+<div class="overflow-hidden bg-white border border-gray-200 rounded-lg dark:bg-gray-900 dark:border-gray-800">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-700 dark:text-gray-300">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-800 dark:text-gray-400">
+                <tr>
+                    <th class="px-6 py-4">Thời gian</th>
+                    <th class="px-6 py-4">Sản phẩm / Variant</th>
+                    <th class="px-6 py-4">Hành động</th>
+                    <th class="px-6 py-4 text-right">Thay đổi</th>
+                    <th class="px-6 py-4 text-right">Tồn trước</th>
+                    <th class="px-6 py-4 text-right">Tồn sau</th>
+                    <th class="px-6 py-4">Lý do</th>
+                    <th class="px-6 py-4">Người thực hiện</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model?.Any() == true)
+                {
+                    @foreach (var log in Model)
+                    {
+                        <tr class="border-b border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                            <td class="px-6 py-4">
+                                @log.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+                            <td class="px-6 py-4">
+                                @if (log.Variant != null)
+                                {
+                                    <div class="font-medium text-gray-900 dark:text-white">@log.Variant.Product?.ProductName</div>
+                                    <div class="text-xs text-gray-500">@log.Variant.VariantName</div>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400">Unknown Variant #@log.VariantId</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4">
+                                @{
+                                    var actionClass = log.Action switch
+                                    {
+                                        InventoryAction.Import => "bg-green-100 text-green-800",
+                                        InventoryAction.Export => "bg-blue-100 text-blue-800",
+                                        InventoryAction.Adjust => "bg-yellow-100 text-yellow-800",
+                                        InventoryAction.Return => "bg-purple-100 text-purple-800",
+                                        InventoryAction.Damaged => "bg-red-100 text-red-800",
+                                        _ => "bg-gray-100 text-gray-800"
+                                    };
+                                }
+                                <span class="px-2 py-1 text-xs font-medium rounded-full @actionClass">
+                                    @log.Action
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right font-medium @(log.QuantityChange > 0 ? "text-green-600" : "text-red-600")">
+                                @(log.QuantityChange > 0 ? "+" : "")@log.QuantityChange
+                            </td>
+                            <td class="px-6 py-4 text-right text-gray-500">
+                                @log.QuantityBefore
+                            </td>
+                            <td class="px-6 py-4 text-right font-bold">
+                                @log.QuantityAfter
+                            </td>
+                            <td class="px-6 py-4">
+                                @log.Reason
+                                @if (log.InvoiceId.HasValue)
+                                {
+                                    <a asp-controller="Invoice" asp-action="Details" asp-route-id="@log.InvoiceId" class="text-blue-600 hover:underline ml-1">
+                                        (Đơn #@log.InvoiceId)
+                                    </a>
+                                }
+                            </td>
+                            <td class="px-6 py-4">
+                                @(log.User?.FullName ?? "System/Admin")
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+                            Chưa có lịch sử ghi nhận
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

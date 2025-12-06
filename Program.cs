@@ -26,6 +26,11 @@ builder.Services.AddScoped<MyProject.Interface.IUserService, MyProject.Service.U
 builder.Services.AddScoped<MyProject.Interface.ICartService, MyProject.Service.CartService>();
 builder.Services.AddScoped<MyProject.Interface.ICartDetailService, MyProject.Service.CartDetailService>();
 builder.Services.AddScoped<MyProject.Interface.IVariantService, MyProject.Service.VariantService>();
+builder.Services.AddScoped<MyProject.Interface.IInventoryService, MyProject.Service.InventoryService>();
+builder.Services.AddScoped<MyProject.Interface.IOrderAuditService, MyProject.Service.OrderAuditService>();
+builder.Services.AddScoped<MyProject.Interface.IReviewService, MyProject.Service.ReviewService>();
+builder.Services.AddScoped<MyProject.Interface.IWishlistService, MyProject.Service.WishlistService>();
+builder.Services.AddScoped<MyProject.Interface.INotificationService, MyProject.Service.NotificationService>();
 
 // ASP.NET Core Identity
 builder.Services
@@ -69,11 +74,11 @@ builder.Services
         googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
         googleOptions.CallbackPath = "/signin-google";
 
-        // L?y thêm thông tin user
+        // L?y thï¿½m thï¿½ng tin user
         googleOptions.Scope.Add("profile");
         googleOptions.Scope.Add("email");
 
-        // Map Google "sub" thành ClaimTypes.NameIdentifier
+        // Map Google "sub" thï¿½nh ClaimTypes.NameIdentifier
         googleOptions.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "sub");
         googleOptions.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
         googleOptions.ClaimActions.MapJsonKey(ClaimTypes.GivenName, "given_name");

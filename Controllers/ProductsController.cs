@@ -2,16 +2,23 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyProject.Data;
 using MyProject.Models.Shared;
+using MyProject.Interface;
+using Microsoft.AspNetCore.Identity;
+using MyProject.Areas.Admin.Models;
 
 namespace MyProject.Controllers
 {
     public class ProductsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IReviewService _reviewService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ProductsController(ApplicationDbContext context)
+        public ProductsController(ApplicationDbContext context, IReviewService reviewService, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _reviewService = reviewService;
+            _userManager = userManager;
         }
 
         // GET: Products
@@ -151,6 +158,25 @@ namespace MyProject.Controllers
             }
 
             ViewBag.RelatedProducts = relatedProducts;
+
+            ViewBag.RelatedProducts = relatedProducts;
+
+            // Check if user can review
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null && user.DomainUserId != null)
+            {
+                ViewBag.CanReview = await _reviewService.CanUserReviewAsync(user.DomainUserId.Value, product.ProductId);
+                
+                if (ViewBag.CanReview == false)
+                {
+                    // Check if user has already reviewed
+                    ViewBag.UserReview = await _reviewService.GetUserReviewAsync(user.DomainUserId.Value, product.ProductId);
+                }
+            }
+            else
+            {
+                ViewBag.CanReview = false;
+            }
 
             return View(product);
         }

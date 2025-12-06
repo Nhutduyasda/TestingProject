@@ -30,6 +30,20 @@
                             800: '#3730a3',
                             900: '#312e81',
                         }
+                    },
+                    animation: {
+                        'gradient': 'gradient 15s ease infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        gradient: {
+                            '0%, 100%': { 'background-position': '0% 50%' },
+                            '50%': { 'background-position': '100% 50%' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
                     }
                 }
             }
@@ -41,8 +55,21 @@
     
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .animate-gradient-bg {
+            background: linear-gradient(-45deg, #6366f1, #a855f7, #ec4899, #6366f1);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+    </style>
 </head>
-<body class="antialiased bg-gradient-to-br from-brand-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+<body class="antialiased bg-white dark:bg-gray-900">
     
     <!-- Dark Mode Toggle -->
     <div class="fixed top-4 right-4 z-50">
@@ -53,24 +80,61 @@
         </button>
     </div>
 
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="w-full max-w-md">
-            
-            <!-- Logo & Welcome -->
-            <div class="mb-8 text-center">
-                <div class="flex items-center justify-center w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-brand-500 to-purple-600 shadow-xl">
-                    <i class="text-3xl text-white fas fa-user-circle"></i>
-                </div>
-                <h1 class="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Chào mừng trở lại!</h1>
-                <p class="text-gray-600 dark:text-gray-400">Đăng nhập để tiếp tục sử dụng MyProject</p>
+    <div class="flex min-h-screen">
+        <!-- Left Side: Dynamic Background -->
+        <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden animate-gradient-bg items-center justify-center p-12">
+            <!-- Decorative Shapes -->
+            <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+                <div class="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-float" style="animation-delay: 0s;"></div>
+                <div class="absolute bottom-20 right-20 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl animate-float" style="animation-delay: 2s;"></div>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-float" style="animation-delay: 4s;"></div>
             </div>
 
-            <!-- Login Form -->
-            <div class="p-8 bg-white border border-gray-200 shadow-2xl backdrop-blur-sm rounded-2xl dark:bg-gray-800/50 dark:border-gray-700">
+            <!-- Content Card -->
+            <div class="relative z-10 max-w-lg text-center glass-effect p-10 rounded-3xl shadow-2xl">
+                <div class="flex items-center justify-center w-24 h-24 mx-auto mb-6 rounded-2xl bg-white/20 shadow-inner backdrop-blur-md">
+                    <i class="text-5xl text-white fas fa-shopping-bag"></i>
+                </div>
+                <h2 class="mb-4 text-4xl font-bold text-white">Chào mừng trở lại!</h2>
+                <p class="text-lg text-white/90 leading-relaxed">
+                    Khám phá hàng ngàn sản phẩm chất lượng cao với giá tốt nhất. Đăng nhập để tiếp tục hành trình mua sắm của bạn.
+                </p>
                 
+                <!-- Stats or Features -->
+                <div class="grid grid-cols-3 gap-4 mt-8 pt-8 border-t border-white/20">
+                    <div>
+                        <div class="text-2xl font-bold text-white">1+</div>
+                        <div class="text-xs text-white/80">Sản phẩm</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-white">24/7</div>
+                        <div class="text-xs text-white/80">Hỗ trợ</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-white">100%</div>
+                        <div class="text-xs text-white/80">Uy tín</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white dark:bg-gray-900">
+            <div class="w-full max-w-md space-y-8">
+                <div class="lg:hidden text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br from-brand-500 to-purple-600 shadow-lg mb-4">
+                        <i class="text-2xl text-white fas fa-shopping-bag"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">MyProject</h2>
+                </div>
+
+                <div class="text-center lg:text-left">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Đăng nhập</h1>
+                    <p class="mt-2 text-gray-600 dark:text-gray-400">Nhập thông tin đăng nhập của bạn để truy cập.</p>
+                </div>
+
                 @if (!ViewData.ModelState.IsValid)
                 {
-                    <div class="p-4 mb-6 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20">
+                    <div class="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-lg">
                         <div class="flex items-start gap-3">
                             <i class="mt-1 text-red-600 fas fa-exclamation-circle dark:text-red-400"></i>
                             <div class="text-sm text-red-800 dark:text-red-300">
@@ -82,7 +146,7 @@
 
                 @if (TempData["SuccessMessage"] != null)
                 {
-                    <div class="p-4 mb-6 border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20">
+                    <div class="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20 rounded-r-lg">
                         <div class="flex items-start gap-3">
                             <i class="mt-1 text-green-600 fas fa-check-circle dark:text-green-400"></i>
                             <div class="text-sm text-green-800 dark:text-green-300">
@@ -92,52 +156,49 @@
                     </div>
                 }
 
-                @if (TempData["InfoMessage"] != null)
-                {
-                    <div class="p-4 mb-6 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20">
-                        <div class="flex items-start gap-3">
-                            <i class="mt-1 text-blue-600 fas fa-info-circle dark:text-blue-400"></i>
-                            <div class="text-sm text-blue-800 dark:text-blue-300">
-                                @TempData["InfoMessage"]
-                            </div>
-                        </div>
-                    </div>
-                }
-
-                <form method="post" asp-action="Login" asp-controller="Account">
+                <form method="post" asp-action="Login" asp-controller="Account" class="space-y-6">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
 
                     <div class="space-y-5">
-                        <!-- Username -->
-                        <div>
+                            <div>
                             <label for="username" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                <i class="mr-1 fas fa-user text-brand-600 dark:text-brand-400"></i>
                                 Tên đăng nhập
                             </label>
-                            <input type="text" 
-                                   id="username" 
-                                   name="username" 
-                                   required
-                                   autocomplete="username"
-                                   class="w-full px-4 py-3 transition-all border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-brand-500"
-                                   placeholder="Nhập tên đăng nhập của bạn">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                    <i class="fas fa-user text-gray-400"></i>
+                                </div>
+                                <input type="text" 
+                                       id="username" 
+                                       name="username" 
+                                       required
+                                       autocomplete="username"
+                                       class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:ring-brand-500"
+                                       placeholder="Nhập tên đăng nhập">
+                            </div>
                         </div>
 
-                        <!-- Password -->
                         <div x-data="{ showPassword: false }">
-                            <label for="password" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                <i class="mr-1 fas fa-lock text-brand-600 dark:text-brand-400"></i>
-                                Mật khẩu
-                            </label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label for="password" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Mật khẩu
+                                </label>
+                                <a href="#" class="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+                                    Quên mật khẩu?
+                                </a>
+                            </div>
                             <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                    <i class="fas fa-lock text-gray-400"></i>
+                                </div>
                                 <input :type="showPassword ? 'text' : 'password'" 
                                        id="password" 
                                        name="password" 
                                        required
                                        autocomplete="current-password"
-                                       class="w-full px-4 py-3 pr-12 transition-all border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-brand-500"
-                                       placeholder="Nhập mật khẩu của bạn">
+                                       class="w-full pl-11 pr-12 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:ring-brand-500"
+                                       placeholder="Nhập mật khẩu">
                                 <button type="button" 
                                         @@click="showPassword = !showPassword"
                                         class="absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
@@ -146,80 +207,45 @@
                             </div>
                         </div>
 
-                        <!-- Remember & Forgot Password -->
-                        <div class="flex items-center justify-between text-sm">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600">
-                                <span class="text-gray-600 dark:text-gray-400">Ghi nhớ đăng nhập</span>
-                            </label>
-                            <a href="#" class="font-medium transition-colors text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
-                                Quên mật khẩu?
-                            </a>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="remember" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700">
+                            <label for="remember" class="ml-2 text-sm text-gray-600 dark:text-gray-400">Ghi nhớ đăng nhập</label>
                         </div>
-
-                        <!-- Login Button -->
                         <button type="submit" 
-                                class="flex items-center justify-center w-full gap-2 px-6 py-3 text-white transition-all shadow-lg bg-gradient-to-r from-brand-600 to-purple-600 rounded-xl hover:from-brand-700 hover:to-purple-700 hover:shadow-xl">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span class="font-medium">Đăng nhập</span>
+                                class="w-full px-6 py-3.5 text-white font-medium bg-brand-600 hover:bg-brand-700 focus:ring-4 focus:ring-brand-500/20 rounded-xl transition-all shadow-lg shadow-brand-500/30 transform hover:-translate-y-0.5">
+                            Đăng nhập
                         </button>
-
-                        <!-- Divider -->
-                        <div class="relative flex items-center justify-center my-4">
-                            <div class="absolute inset-0 flex items-center">
-                                <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
-                            </div>
-                            <div class="relative px-4 text-sm text-gray-500 bg-white dark:bg-gray-800 dark:text-gray-400">
-                                Hoặc
-                            </div>
-                        </div>
-
-                        <!-- Google Login Button -->
-                        <a asp-action="GoogleLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]"
-                           class="flex items-center justify-center w-full gap-2 px-6 py-3 transition-all bg-white border border-gray-300 shadow-md rounded-xl hover:bg-gray-50 hover:shadow-lg dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white">
-                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
-                            <span class="font-medium text-gray-700 dark:text-gray-200">Đăng nhập bằng Google</span>
-                        </a>
-
-                        <!-- Demo Accounts Info -->
-                        <div class="p-4 border border-blue-200 bg-blue-50 rounded-xl dark:bg-blue-900/10 dark:border-blue-800">
-                            <div class="flex items-start gap-2 mb-3">
-                                <i class="mt-1 text-blue-600 fas fa-info-circle dark:text-blue-400"></i>
-                                <div class="text-sm font-medium text-blue-800 dark:text-blue-300">Tài khoản demo:</div>
-                            </div>
-                            <div class="space-y-2 text-xs text-blue-700 dark:text-blue-300">
-                                <div class="flex items-center gap-2">
-                                    <span class="px-2 py-1 font-medium text-blue-800 bg-blue-100 rounded dark:bg-blue-900/30 dark:text-blue-200">Admin</span>
-                                    <span>admin / Admin@123</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="px-2 py-1 font-medium text-purple-800 bg-purple-100 rounded dark:bg-purple-900/30 dark:text-purple-200">User</span>
-                                    <span>user / User@123</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Register Link -->
-                        <div class="pt-4 text-center border-t border-gray-200 dark:border-gray-700">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">
-                                Chưa có tài khoản? 
-                                <a asp-action="Register" 
-                                   class="font-medium transition-colors text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
-                                    Đăng ký ngay
-                                </a>
-                            </p>
-                        </div>
                     </div>
                 </form>
-            </div>
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-4 text-gray-500 bg-white dark:bg-gray-900 dark:text-gray-400">Hoặc tiếp tục với</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-3">
+                    <a asp-action="GoogleLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]"
+                       class="flex items-center justify-center gap-3 px-6 py-3 transition-all bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 dark:text-white group">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5 transition-transform group-hover:scale-110" alt="Google">
+                        <span class="font-medium text-gray-700 dark:text-gray-200">Google</span>
+                    </a>
+                </div>
+                <p class="text-center text-sm text-gray-600 dark:text-gray-400">
+                    Chưa có tài khoản? 
+                    <a asp-action="Register" class="font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 hover:underline">
+                        Đăng ký miễn phí
+                    </a>
+                </p>                
 
-            <!-- Back to Home -->
-            <div class="mt-6 text-center">
-                <a asp-controller="Home" asp-action="Index" 
-                   class="inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    <i class="fas fa-home"></i>
-                    <span>Quay về trang chủ</span>
-                </a>
+                <div class="text-center">
+                    <a asp-controller="Home" asp-action="Index" 
+                       class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-500 dark:hover:text-gray-300 transition-colors">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Quay về trang chủ</span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -235,8 +261,6 @@
                 document.documentElement.classList.add('dark');
             }
         }
-
-        // Initialize dark mode based on localStorage
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {

@@ -163,7 +163,7 @@ namespace MyProject.Controllers
 
         // Checkout page
         [HttpGet]
-        public async Task<IActionResult> Checkout()
+        public async Task<IActionResult> Checkout(string? selectedIds)
         {
             var userId = await GetCurrentUserIdAsync();
             if (userId == null)
@@ -179,22 +179,44 @@ namespace MyProject.Controllers
             }
 
             var cartDetails = await _cartDetailService.GetByCartIdAsync(cart.CartId);
+            
+            // Filter if selectedIds provided
+            if (!string.IsNullOrEmpty(selectedIds))
+            {
+                var selectedIdList = selectedIds.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                              .Select(id => int.Parse(id))
+                                              .ToList();
+                cartDetails = cartDetails.Where(cd => selectedIdList.Contains(cd.CartDetailId)).ToList();
+            }
+
             if (!cartDetails.Any())
             {
-                TempData["ErrorMessage"] = "Giỏ hàng của bạn đang trống!";
+                TempData["ErrorMessage"] = "Vui lòng chọn sản phẩm để thanh toán!";
                 return RedirectToAction("MyCart");
             }
 
             ViewBag.CartDetails = cartDetails;
-            ViewBag.TotalPrice = await _cartDetailService.GetTotalPriceByCartIdAsync(cart.CartId);
-            ViewBag.TotalItems = await _cartDetailService.GetTotalItemsByCartIdAsync(cart.CartId);
+            
+            // Recalculate totals for selected items
+            decimal totalPrice = 0;
+            int totalItems = 0;
+            foreach (var item in cartDetails)
+            {
+                var price = item.VariantId.HasValue ? item.Variant?.Price ?? 0 : item.Combo?.Price ?? 0;
+                totalPrice += price * item.Quantity;
+                totalItems += item.Quantity;
+            }
+
+            ViewBag.TotalPrice = totalPrice;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.SelectedIds = selectedIds;
 
             return View(cart);
         }
 
         // Process checkout
         [HttpPost]
-        public async Task<IActionResult> ProcessCheckout(string payMethod = "Cash")
+        public async Task<IActionResult> ProcessCheckout(string payMethod, string fullName, string phoneNumber, string address, string? note, string? selectedIds)
         {
             try
             {
@@ -210,6 +232,15 @@ namespace MyProject.Controllers
                     return Json(new { success = false, message = "Không tìm thấy giỏ hàng!" });
                 }
 
+                // Parse selected IDs
+                List<int>? selectedIdList = null;
+                if (!string.IsNullOrEmpty(selectedIds))
+                {
+                    selectedIdList = selectedIds.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                              .Select(id => int.Parse(id))
+                                              .ToList();
+                }
+
                 // Parse payment method
                 if (!Enum.TryParse<PayMethod>(payMethod, true, out PayMethod payMethodEnum))
                 {
@@ -218,7 +249,7 @@ namespace MyProject.Controllers
 
                 // Use InvoiceService to create from cart - this handles validation, stock, and clearing cart
                 var invoiceService = HttpContext.RequestServices.GetRequiredService<IInvoiceService>();
-                var invoice = await invoiceService.CreateFromCartAsync(cart.CartId, payMethodEnum);
+                var invoice = await invoiceService.CreateFromCartAsync(cart.CartId, payMethodEnum, fullName, phoneNumber, address, note, selectedIdList);
 
                 return Json(new
                 {

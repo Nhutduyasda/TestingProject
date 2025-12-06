@@ -163,13 +163,14 @@
 
                         <!-- Add to Cart Button -->
                         <div class="mt-6 space-y-3">
-                            <button @@click="addToCart()" 
+                            <button @@click="addToCart(selectedVariant)" 
                                     x-bind:disabled="!selectedVariant"
                                     class="w-full px-8 py-4 text-lg font-semibold text-white transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed bg-brand-600 hover:bg-brand-700">
                                 <i class="mr-2 fas fa-shopping-cart"></i>
                                 Thêm vào giỏ hàng
                             </button>
-                            <button class="w-full px-8 py-4 text-lg font-semibold text-gray-700 transition-colors bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                            <button onclick="toggleWishlist(@Model.ProductId)"
+                                    class="w-full px-8 py-4 text-lg font-semibold text-gray-700 transition-colors bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                                 <i class="mr-2 far fa-heart"></i>
                                 Thêm vào yêu thích
                             </button>
@@ -180,6 +181,126 @@
         </div>
     </div>
 </div>
+
+<!-- Review Form / User Review -->
+@if (ViewBag.CanReview == true)
+{
+    <div class="py-12 bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800">
+        <div class="px-4 mx-auto max-w-3xl sm:px-6 lg:px-8">
+            <h2 class="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Viết đánh giá của bạn</h2>
+            <form asp-area="User" asp-controller="Review" asp-action="Submit" method="post" class="space-y-6">
+                <input type="hidden" name="ProductId" value="@Model.ProductId" />
+                
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Đánh giá của bạn</label>
+                    <div class="flex items-center gap-2" x-data="{ rating: 5, hoverRating: 0 }">
+                        <input type="hidden" name="Rating" x-model="rating" />
+                        <template x-for="i in 5">
+                            <button type="button" 
+                                    @@click="rating = i" 
+                                    @@mouseenter="hoverRating = i" 
+                                    @@mouseleave="hoverRating = 0"
+                                    class="text-2xl focus:outline-none transition-colors">
+                                <i class="fas fa-star" 
+                                   :class="(hoverRating || rating) >= i ? 'text-yellow-400' : 'text-gray-300'"></i>
+                            </button>
+                        </template>
+                        <span class="ml-2 text-sm text-gray-500" x-text="(hoverRating || rating) + ' sao'"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nhận xét</label>
+                    <textarea name="ReviewText" rows="4" required
+                              class="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 sm:text-sm focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-brand-500 dark:focus:border-brand-500"
+                              placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
+                </div>
+
+                <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 focus:ring-4 focus:outline-none focus:ring-brand-300 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-brand-800">
+                    Gửi đánh giá
+                </button>
+            </form>
+        </div>
+    </div>
+}
+else if (ViewBag.UserReview != null)
+{
+    var userReview = ViewBag.UserReview as MyProject.Areas.User.Models.ProductReview;
+    <div class="py-12 bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800" x-data="{ isEditing: false }">
+        <div class="px-4 mx-auto max-w-3xl sm:px-6 lg:px-8">
+            <!-- Display Mode -->
+            <div x-show="!isEditing">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Đánh giá của bạn</h2>
+                    <button @@click="isEditing = true" class="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
+                        <i class="mr-1 fas fa-edit"></i> Chỉnh sửa
+                    </button>
+                </div>
+                
+                <div class="p-6 bg-gray-50 rounded-lg dark:bg-gray-800">
+                    <div class="flex items-center gap-1 mb-3">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            <i class="@(i <= userReview.Rating ? "fas text-yellow-400" : "far text-gray-300") fa-star"></i>
+                        }
+                        <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                            @userReview.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                        </span>
+                    </div>
+                    <p class="text-gray-700 dark:text-gray-300">@userReview.ReviewText</p>
+                </div>
+            </div>
+
+            <!-- Edit Mode -->
+            <div x-show="isEditing" x-cloak>
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Chỉnh sửa đánh giá</h2>
+                    <button @@click="isEditing = false" class="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400">
+                        <i class="mr-1 fas fa-times"></i> Hủy
+                    </button>
+                </div>
+
+                <form asp-area="User" asp-controller="Review" asp-action="Update" method="post" class="space-y-6">
+                    <input type="hidden" name="ProductId" value="@Model.ProductId" />
+                    
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Đánh giá của bạn</label>
+                        <div class="flex items-center gap-2" x-data="{ rating: @userReview.Rating, hoverRating: 0 }">
+                            <input type="hidden" name="Rating" x-model="rating" />
+                            <template x-for="i in 5">
+                                <button type="button" 
+                                        @@click="rating = i" 
+                                        @@mouseenter="hoverRating = i" 
+                                        @@mouseleave="hoverRating = 0"
+                                        class="text-2xl focus:outline-none transition-colors">
+                                    <i class="fas fa-star" 
+                                       :class="(hoverRating || rating) >= i ? 'text-yellow-400' : 'text-gray-300'"></i>
+                                </button>
+                            </template>
+                            <span class="ml-2 text-sm text-gray-500" x-text="(hoverRating || rating) + ' sao'"></span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nhận xét</label>
+                        <textarea name="ReviewText" rows="4" required
+                                  class="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 sm:text-sm focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-brand-500 dark:focus:border-brand-500"
+                                  placeholder="Chia sẻ cảm nhận của bạn về sản phẩm...">@userReview.ReviewText</textarea>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 focus:ring-4 focus:outline-none focus:ring-brand-300 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-brand-800">
+                            Cập nhật
+                        </button>
+                        <button type="button" @@click="isEditing = false" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:outline-none focus:ring-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700">
+                            Hủy
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
 
 <!-- Reviews Section -->
 <div id="reviews" class="py-12 bg-gray-50 dark:bg-gray-900">
@@ -278,10 +399,8 @@
 
 @section Scripts {
     <script>
-        function addToCart() {
-            const selectedVariant = Alpine.store('selectedVariant') || document.querySelector('[x-data] button[class*="border-brand-600"]')?.getAttribute('@@click')?.match(/\d+/)?.[0];
-            
-            if (!selectedVariant) {
+        function addToCart(variantId) {
+            if (!variantId) {
                 showToast('Vui lòng chọn phiên bản sản phẩm!', 'error');
                 return;
             }
@@ -290,7 +409,7 @@
                 url: '@Url.Action("AddToCart", "Cart")',
                 type: 'POST',
                 data: { 
-                    variantId: selectedVariant,
+                    variantId: variantId,
                     quantity: 1,
                     __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                 },
@@ -308,6 +427,34 @@
                 },
                 error: function() {
                     showToast('Có lỗi xảy ra khi thêm vào giỏ hàng!', 'error');
+                }
+            });
+        }
+
+        function toggleWishlist(productId) {
+            $.ajax({
+                url: '@Url.Action("Toggle", "Wishlist", new { area = "User" })',
+                type: 'POST',
+                data: { productId: productId },
+                success: function(response) {
+                    if (response.success) {
+                        showToast(response.message, 'success');
+                        // Optional: Toggle heart icon style
+                        const btn = event.currentTarget;
+                        const icon = btn.querySelector('i');
+                        if (response.isAdded) {
+                            icon.classList.remove('far');
+                            icon.classList.add('fas', 'text-red-500');
+                        } else {
+                            icon.classList.remove('fas', 'text-red-500');
+                            icon.classList.add('far');
+                        }
+                    } else {
+                        showToast(response.message, 'error');
+                    }
+                },
+                error: function() {
+                    showToast('Có lỗi xảy ra!', 'error');
                 }
             });
         }

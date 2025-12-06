@@ -20,6 +20,9 @@ namespace MyProject.Areas.Admin.Models
         
         [Required, StringLength(100)]
         public string FirstMidName { get; set; } = string.Empty;
+
+        [NotMapped]
+        public string FullName => $"{LastName} {FirstMidName}";
         
         [Required, StringLength(100)]
         public string Email { get; set; } = string.Empty;

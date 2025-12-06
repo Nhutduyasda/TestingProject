@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
@@ -18,6 +18,8 @@ namespace MyProject.Models.Shared
         
         [Required]
         public int ProductId { get; set; }
+
+        public int? VariantId { get; set; }
         
         /// <summary>
         /// Quantity of this product included in the combo
@@ -50,5 +52,8 @@ namespace MyProject.Models.Shared
         
         [ValidateNever]
         public Product? Product { get; set; }
+
+        [ValidateNever]
+        public Variant? Variant { get; set; }
     }
 }

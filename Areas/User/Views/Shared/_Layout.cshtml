@@ -113,6 +113,10 @@
                            class="text-gray-700 transition-colors hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-400">
                             <i class="mr-1 fas fa-receipt"></i> Đơn hàng
                         </a>
+                        <a asp-area="User" asp-controller="Wishlist" asp-action="Index" 
+                           class="text-gray-700 transition-colors hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-400">
+                            <i class="mr-1 fas fa-heart"></i> Yêu thích
+                        </a>
                     }
                 </div>
 
@@ -171,6 +175,11 @@
                                        class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700">
                                         <i class="w-5 fas fa-receipt"></i>
                                         <span>Đơn hàng của tôi</span>
+                                    </a>
+                                    <a asp-area="User" asp-controller="Wishlist" asp-action="Index" 
+                                       class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700">
+                                        <i class="w-5 fas fa-heart"></i>
+                                        <span>Danh sách yêu thích</span>
                                     </a>
                                     @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
                                     {

@@ -1,0 +1,106 @@
+@model IEnumerable<MyProject.Areas.User.Models.Wishlist>
+
+@{
+    ViewData["Title"] = "Danh sách yêu thích";
+}
+
+<div class="py-12 bg-gray-50 dark:bg-gray-900">
+    <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <h1 class="mb-8 text-3xl font-bold text-gray-900 dark:text-white">Danh sách yêu thích</h1>
+
+        @if (Model?.Any() == true)
+        {
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                @foreach (var item in Model)
+                {
+                    var product = item.Product;
+                    if (product == null) continue;
+
+                    var productMinPrice = product.Variants?.Any() == true ? product.Variants.Min(v => v.Price) : 0;
+                    var imageUrl = product.Images?.FirstOrDefault()?.ImageUrl ?? "/images/no-image.jpg";
+                    var inStock = product.Variants?.Any(v => v.Quanlity > 0) ?? false;
+
+                    <div class="overflow-hidden transition-shadow duration-300 bg-white rounded-lg shadow-sm group dark:bg-gray-800 hover:shadow-lg">
+                        <div class="relative">
+                            <a asp-controller="Products" asp-action="Details" asp-route-id="@product.ProductId" asp-area="" class="block aspect-square">
+                                <img src="@imageUrl" 
+                                     alt="@product.ProductName"
+                                     class="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110">
+                            </a>
+                            <button onclick="removeFromWishlist(@product.ProductId, this)" 
+                                    class="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                                    title="Xóa khỏi yêu thích">
+                                <i class="text-red-500 fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+
+                        <div class="p-4">
+                            <a asp-controller="Products" asp-action="Details" asp-route-id="@product.ProductId" asp-area="">
+                                <h3 class="mb-2 text-lg font-semibold text-gray-900 line-clamp-2 dark:text-white group-hover:text-brand-600">
+                                    @product.ProductName
+                                </h3>
+                            </a>
+
+                            <div class="flex items-end justify-between mt-4">
+                                <p class="text-xl font-bold text-brand-600 dark:text-brand-400">
+                                    @productMinPrice.ToString("N0") ₫
+                                </p>
+                                @if (inStock)
+                                {
+                                    <span class="text-xs font-medium text-green-600 dark:text-green-400">Còn hàng</span>
+                                }
+                                else
+                                {
+                                    <span class="text-xs font-medium text-red-600 dark:text-red-400">Hết hàng</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="py-12 text-center bg-white rounded-lg shadow-sm dark:bg-gray-800">
+                <div class="flex items-center justify-center w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full dark:bg-gray-700">
+                    <i class="text-4xl text-gray-400 far fa-heart"></i>
+                </div>
+                <h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">Danh sách trống</h3>
+                <p class="mb-6 text-gray-500 dark:text-gray-400">Bạn chưa thêm sản phẩm nào vào danh sách yêu thích.</p>
+                <a asp-controller="Products" asp-action="Index" asp-area="" 
+                   class="inline-flex items-center px-4 py-2 text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700">
+                    Tiếp tục mua sắm
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function removeFromWishlist(productId, btn) {
+            if (!confirm('Bạn có chắc muốn xóa sản phẩm này khỏi danh sách yêu thích?')) return;
+
+            $.ajax({
+                url: '@Url.Action("Toggle", "Wishlist", new { area = "User" })',
+                type: 'POST',
+                data: { productId: productId },
+                success: function(response) {
+                    if (response.success) {
+                        // Remove the card
+                        $(btn).closest('.group').fadeOut(300, function() { 
+                            $(this).remove(); 
+                            if ($('.group').length === 0) location.reload();
+                        });
+                        showToast('Đã xóa khỏi danh sách yêu thích', 'success');
+                    } else {
+                        showToast(response.message, 'error');
+                    }
+                },
+                error: function() {
+                    showToast('Có lỗi xảy ra!', 'error');
+                }
+            });
+        }
+    </script>
+}

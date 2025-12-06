@@ -10,35 +10,17 @@ namespace MyProject.Service
     {
         private readonly ApplicationDbContext _context;
         private readonly IHttpContextAccessor? _httpContextAccessor;
+        private readonly IInventoryService _inventoryService;
+        private readonly IOrderAuditService _orderAuditService;
 
-        public InvoiceService(ApplicationDbContext context, IHttpContextAccessor? httpContextAccessor = null)
+        public InvoiceService(ApplicationDbContext context, IInventoryService inventoryService, IOrderAuditService orderAuditService, IHttpContextAccessor? httpContextAccessor = null)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _inventoryService = inventoryService;
+            _orderAuditService = orderAuditService;
         }
 
-        /// <summary>
-        /// Log status changes to audit trail
-        /// </summary>
-        private async Task LogStatusChangeAsync(int invoiceId, OrderStatus oldStatus, OrderStatus newStatus, 
-            string? reason = null, int? userId = null, string? role = null)
-        {
-            var auditLog = new OrderAuditLog
-            {
-                InvoiceId = invoiceId,
-                OldStatus = oldStatus,
-                NewStatus = newStatus,
-                ChangedAt = DateTime.UtcNow,
-                ChangedByUserId = userId,
-                ChangedByRole = role,
-                Reason = reason,
-                IpAddress = _httpContextAccessor?.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
-                IsAutomated = false
-            };
-
-            _context.OrderAuditLogs.Add(auditLog);
-            await _context.SaveChangesAsync();
-        }
 
         public async Task<IEnumerable<Invoice>> GetAllAsync()
         {
@@ -97,7 +79,7 @@ namespace MyProject.Service
             }
         }
 
-        public async Task<Invoice> CreateFromCartAsync(int cartId, PayMethod? payMethod)
+        public async Task<Invoice> CreateFromCartAsync(int cartId, PayMethod? payMethod, string recipientName, string phoneNumber, string address, string? note, List<int>? selectedCartDetailIds = null)
         {
             var cart = await _context.Carts
                 .Include(c => c.CartDetails!)
@@ -111,8 +93,20 @@ namespace MyProject.Service
             if (cart.CartDetails == null || cart.CartDetails.Count == 0)
                 throw new InvalidOperationException("Cart is empty");
 
+            // Filter items if selectedCartDetailIds is provided
+            var itemsToProcess = cart.CartDetails.ToList();
+            if (selectedCartDetailIds != null && selectedCartDetailIds.Any())
+            {
+                itemsToProcess = itemsToProcess.Where(cd => selectedCartDetailIds.Contains(cd.CartDetailId)).ToList();
+            }
+
+            if (!itemsToProcess.Any())
+            {
+                throw new InvalidOperationException("No items selected for checkout");
+            }
+
             // Validate and load items
-            foreach (var cartDetail in cart.CartDetails)
+            foreach (var cartDetail in itemsToProcess)
             {
                 if (cartDetail.VariantId.HasValue && cartDetail.Variant == null)
                 {
@@ -144,10 +138,14 @@ namespace MyProject.Service
                 PayMethod = payMethod,
                 CreatedAt = DateTime.UtcNow,
                 Status = OrderStatus.Pending,
+                RecipientName = recipientName,
+                PhoneNumber = phoneNumber,
+                DeliveryAddress = address,
+                Note = note,
                 InvoiceDetails = new List<InvoiceDetail>()
             };
 
-            foreach (var item in cart.CartDetails)
+            foreach (var item in itemsToProcess)
             {
                 if (item.VariantId.HasValue)
                 {
@@ -189,6 +187,7 @@ namespace MyProject.Service
             try
             {
                 _context.Invoices.Add(invoice);
+                await _context.SaveChangesAsync(); // Save first to generate InvoiceId
                 
                 // Update stock with concurrency check
                 foreach (var detail in invoice.InvoiceDetails)
@@ -203,8 +202,16 @@ namespace MyProject.Service
                             throw new InvalidOperationException($"Không đủ số lượng cho sản phẩm {variant.VariantName}. Còn lại: {variant.Quanlity}");
                         }
 
-                        variant.Quanlity -= detail.Quantity;
-                        _context.Entry(variant).OriginalValues["RowVersion"] = variant.RowVersion;
+                        // Use InventoryService to log and update stock
+                        // Note: We pass negative quantity for deduction
+                        await _inventoryService.LogStockChangeAsync(
+                            detail.VariantId.Value, 
+                            -detail.Quantity, 
+                            InventoryAction.Export, 
+                            $"Order #{invoice.InvoiceId}", 
+                            invoice.InvoiceId, 
+                            invoice.UserId
+                        );
                     }
                     else if (detail.ComboId.HasValue)
                     {
@@ -222,9 +229,21 @@ namespace MyProject.Service
                     }
                 }
 
-                // Clear cart
-                _context.CartDetails.RemoveRange(cart.CartDetails);
-                _context.Carts.Remove(cart);
+                // Remove only processed items from cart
+                _context.CartDetails.RemoveRange(itemsToProcess);
+                
+                // If cart is empty after removal, remove the cart itself (optional, but good for cleanup)
+                // However, EF Core tracking might need care here. 
+                // Since we loaded cart.CartDetails, and removed some, we can check if any remain.
+                // But itemsToProcess are the ones we removed.
+                
+                // Check if there are any remaining items in the database for this cart excluding the ones we just deleted
+                // The safest way is to just remove the details. The cart can remain empty or be cleaned up by a background job.
+                // Or we can check:
+                if (cart.CartDetails.Count == itemsToProcess.Count)
+                {
+                     _context.Carts.Remove(cart);
+                }
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
@@ -273,7 +292,7 @@ namespace MyProject.Service
                 invoice.ConfirmedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
-                await LogStatusChangeAsync(invoiceId, oldStatus, OrderStatus.Confirmed,
+                await _orderAuditService.LogStatusChangeAsync(invoiceId, oldStatus, OrderStatus.Confirmed,
                     "Đơn hàng đã được xác nhận", null, "Admin/Staff");
 
                 await transaction.CommitAsync();
@@ -302,7 +321,7 @@ namespace MyProject.Service
                 invoice.ShippedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
-                await LogStatusChangeAsync(invoiceId, oldStatus, OrderStatus.Shipped,
+                await _orderAuditService.LogStatusChangeAsync(invoiceId, oldStatus, OrderStatus.Shipped,
                     "Đơn hàng đã được giao cho đơn vị vận chuyển", null, "Admin/Staff");
 
                 await transaction.CommitAsync();
@@ -331,7 +350,7 @@ namespace MyProject.Service
                 invoice.CompletedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
-                await LogStatusChangeAsync(invoiceId, oldStatus, OrderStatus.Completed,
+                await _orderAuditService.LogStatusChangeAsync(invoiceId, oldStatus, OrderStatus.Completed,
                     "Khách hàng xác nhận đã nhận hàng", userId, "Customer");
 
                 await transaction.CommitAsync();
@@ -361,7 +380,7 @@ namespace MyProject.Service
                 invoice.CancelReason = reason ?? "Khách hàng yêu cầu hủy đơn hàng";
                 await _context.SaveChangesAsync();
 
-                await LogStatusChangeAsync(invoiceId, oldStatus, OrderStatus.CancelRequested,
+                await _orderAuditService.LogStatusChangeAsync(invoiceId, oldStatus, OrderStatus.CancelRequested,
                     invoice.CancelReason, userId, "Customer");
 
                 await transaction.CommitAsync();
@@ -392,7 +411,7 @@ namespace MyProject.Service
                 invoice.CancelledAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
-                await LogStatusChangeAsync(invoiceId, oldStatus, OrderStatus.Cancelled,
+                await _orderAuditService.LogStatusChangeAsync(invoiceId, oldStatus, OrderStatus.Cancelled,
                     invoice.CancelReason, null, "Admin");
 
                 await transaction.CommitAsync();
@@ -422,7 +441,7 @@ namespace MyProject.Service
                 invoice.CancelledAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
-                await LogStatusChangeAsync(invoiceId, oldStatus, OrderStatus.Cancelled,
+                await _orderAuditService.LogStatusChangeAsync(invoiceId, oldStatus, OrderStatus.Cancelled,
                     "Admin chấp nhận yêu cầu hủy", null, "Admin");
 
                 await transaction.CommitAsync();
@@ -460,7 +479,7 @@ namespace MyProject.Service
                 invoice.CancelReason = null;
                 await _context.SaveChangesAsync();
 
-                await LogStatusChangeAsync(invoiceId, oldStatus, revertStatus,
+                await _orderAuditService.LogStatusChangeAsync(invoiceId, oldStatus, revertStatus,
                     "Admin từ chối yêu cầu hủy", null, "Admin");
 
                 await transaction.CommitAsync();

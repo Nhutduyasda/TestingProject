@@ -34,11 +34,19 @@ namespace MyProject.Areas.Admin.Controllers
             
             var products = _context.Products
                 .Include(p => p.Variants)
+                .Include(p => p.Images)
                 .ToList() 
                 .Select(p => new {
                     p.ProductId,
-                    Name = p.ProductName + " - " + (p.Variants.Any() ? p.Variants.Min(v => v.Price).ToString("C") : "N/A"),
-                    Price = p.Variants.Any() ? p.Variants.Min(v => v.Price) : 0
+                    Name = p.ProductName,
+                    Price = p.Variants.Any() ? p.Variants.Min(v => v.Price) : 0,
+                    ImageUrl = p.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? p.Images.FirstOrDefault()?.ImageUrl ?? "/images/default-product.png",
+                    Variants = p.Variants.Select(v => new {
+                        v.VariantId,
+                        v.VariantName,
+                        v.Price,
+                        v.Quanlity
+                    }).ToList()
                 }).ToList();
 
             ViewBag.Products = products;
@@ -47,7 +55,7 @@ namespace MyProject.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Combo combo, int[] productIds, int[] quantities, IFormFile? file)
+        public async Task<IActionResult> Create(Combo combo, int[] variantIds, int[] quantities, IFormFile? file)
         {
             if (ModelState.IsValid)
             {
@@ -72,28 +80,26 @@ namespace MyProject.Areas.Admin.Controllers
 
                 // Calculate Original Price
                 decimal originalPrice = 0;
-                if (productIds != null && quantities != null && productIds.Length == quantities.Length)
+                if (variantIds != null && quantities != null && variantIds.Length == quantities.Length)
                 {
-                    for (int i = 0; i < productIds.Length; i++)
+                    for (int i = 0; i < variantIds.Length; i++)
                     {
-                        var product = await _context.Products
-                            .Include(p => p.Variants)
-                            .FirstOrDefaultAsync(p => p.ProductId == productIds[i]);
+                        var variant = await _context.Variants
+                            .Include(v => v.Product)
+                            .FirstOrDefaultAsync(v => v.VariantId == variantIds[i]);
                             
-                        if (product != null)
+                        if (variant != null)
                         {
-                            // Use the minimum variant price as the product price
-                            decimal productPrice = product.Variants.Any() ? product.Variants.Min(v => v.Price) : 0;
-                            
                             var comboProduct = new ComboProduct
                             {
-                                ProductId = productIds[i],
+                                ProductId = variant.ProductId,
+                                VariantId = variant.VariantId,
                                 Quantity = quantities[i],
-                                UnitPrice = productPrice,
+                                UnitPrice = variant.Price,
                                 Combo = combo
                             };
                             combo.ComboProducts.Add(comboProduct);
-                            originalPrice += productPrice * quantities[i];
+                            originalPrice += variant.Price * quantities[i];
                         }
                     }
                 }
@@ -109,11 +115,19 @@ namespace MyProject.Areas.Admin.Controllers
             
              var productsList = _context.Products
                 .Include(p => p.Variants)
+                .Include(p => p.Images)
                 .ToList()
                 .Select(p => new {
                     p.ProductId,
-                    Name = p.ProductName + " - " + (p.Variants.Any() ? p.Variants.Min(v => v.Price).ToString("C") : "N/A"),
-                    Price = p.Variants.Any() ? p.Variants.Min(v => v.Price) : 0
+                    Name = p.ProductName,
+                    Price = p.Variants.Any() ? p.Variants.Min(v => v.Price) : 0,
+                    ImageUrl = p.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? p.Images.FirstOrDefault()?.ImageUrl ?? "/images/default-product.png",
+                    Variants = p.Variants.Select(v => new {
+                        v.VariantId,
+                        v.VariantName,
+                        v.Price,
+                        v.Quanlity
+                    }).ToList()
                 }).ToList();
             ViewBag.Products = productsList;
             
@@ -130,6 +144,8 @@ namespace MyProject.Areas.Admin.Controllers
             var combo = await _context.Combos
                 .Include(c => c.ComboProducts)
                 .ThenInclude(cp => cp.Product)
+                .Include(c => c.ComboProducts)
+                .ThenInclude(cp => cp.Variant)
                 .FirstOrDefaultAsync(c => c.ComboId == id);
 
             if (combo == null)
@@ -141,11 +157,19 @@ namespace MyProject.Areas.Admin.Controllers
             
             var products = _context.Products
                 .Include(p => p.Variants)
+                .Include(p => p.Images)
                 .ToList()
                 .Select(p => new {
                     p.ProductId,
-                    Name = p.ProductName + " - " + (p.Variants.Any() ? p.Variants.Min(v => v.Price).ToString("C") : "N/A"),
-                    Price = p.Variants.Any() ? p.Variants.Min(v => v.Price) : 0
+                    Name = p.ProductName,
+                    Price = p.Variants.Any() ? p.Variants.Min(v => v.Price) : 0,
+                    ImageUrl = p.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? p.Images.FirstOrDefault()?.ImageUrl ?? "/images/default-product.png",
+                    Variants = p.Variants.Select(v => new {
+                        v.VariantId,
+                        v.VariantName,
+                        v.Price,
+                        v.Quanlity
+                    }).ToList()
                 }).ToList();
             ViewBag.Products = products;
 
@@ -154,7 +178,7 @@ namespace MyProject.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Combo combo, int[] productIds, int[] quantities, IFormFile? file)
+        public async Task<IActionResult> Edit(int id, Combo combo, int[] variantIds, int[] quantities, IFormFile? file)
         {
             if (id != combo.ComboId)
             {
@@ -218,27 +242,26 @@ namespace MyProject.Areas.Admin.Controllers
                     
                     // Add new products
                     decimal originalPrice = 0;
-                    if (productIds != null && quantities != null && productIds.Length == quantities.Length)
+                    if (variantIds != null && quantities != null && variantIds.Length == quantities.Length)
                     {
-                        for (int i = 0; i < productIds.Length; i++)
+                        for (int i = 0; i < variantIds.Length; i++)
                         {
-                            var product = await _context.Products
-                                .Include(p => p.Variants)
-                                .FirstOrDefaultAsync(p => p.ProductId == productIds[i]);
+                            var variant = await _context.Variants
+                                .Include(v => v.Product)
+                                .FirstOrDefaultAsync(v => v.VariantId == variantIds[i]);
                                 
-                            if (product != null)
+                            if (variant != null)
                             {
-                                decimal productPrice = product.Variants.Any() ? product.Variants.Min(v => v.Price) : 0;
-                                
                                 var comboProduct = new ComboProduct
                                 {
-                                    ProductId = productIds[i],
+                                    ProductId = variant.ProductId,
+                                    VariantId = variant.VariantId,
                                     Quantity = quantities[i],
-                                    UnitPrice = productPrice,
+                                    UnitPrice = variant.Price,
                                     ComboId = existingCombo.ComboId
                                 };
                                 _context.ComboProducts.Add(comboProduct);
-                                originalPrice += productPrice * quantities[i];
+                                originalPrice += variant.Price * quantities[i];
                             }
                         }
                     }
@@ -265,11 +288,19 @@ namespace MyProject.Areas.Admin.Controllers
             
             var productsList = _context.Products
                 .Include(p => p.Variants)
+                .Include(p => p.Images)
                 .ToList()
                 .Select(p => new {
                     p.ProductId,
-                    Name = p.ProductName + " - " + (p.Variants.Any() ? p.Variants.Min(v => v.Price).ToString("C") : "N/A"),
-                    Price = p.Variants.Any() ? p.Variants.Min(v => v.Price) : 0
+                    Name = p.ProductName,
+                    Price = p.Variants.Any() ? p.Variants.Min(v => v.Price) : 0,
+                    ImageUrl = p.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? p.Images.FirstOrDefault()?.ImageUrl ?? "/images/default-product.png",
+                    Variants = p.Variants.Select(v => new {
+                        v.VariantId,
+                        v.VariantName,
+                        v.Price,
+                        v.Quanlity
+                    }).ToList()
                 }).ToList();
             ViewBag.Products = productsList;
             

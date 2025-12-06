@@ -33,6 +33,8 @@ namespace MyProject.Controllers
                 .Include(c => c.ComboProducts)
                     .ThenInclude(cp => cp.Product)
                         .ThenInclude(p => p.Images)
+                .Include(c => c.ComboProducts)
+                    .ThenInclude(cp => cp.Variant)
                 .FirstOrDefaultAsync(c => c.ComboId == id && c.IsActive && !c.IsDeleted);
 
             if (combo == null)

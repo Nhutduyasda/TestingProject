@@ -18,19 +18,22 @@ namespace MyProject.Areas.Admin.Controllers
         private readonly IUserService _userService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IOrderAuditService _orderAuditService;
 
         public InvoiceController(
             IInvoiceService invoiceService,
             IInvoiceDetailService invoiceDetailService,
             IUserService userService,
             UserManager<ApplicationUser> userManager,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            IOrderAuditService orderAuditService)
         {
             _invoiceService = invoiceService;
             _invoiceDetailService = invoiceDetailService;
             _userService = userService;
             _userManager = userManager;
             _context = context;
+            _orderAuditService = orderAuditService;
         }
 
         // Admin/Staff view all invoices
@@ -78,6 +81,7 @@ namespace MyProject.Areas.Admin.Controllers
             var invoiceDetails = await _invoiceDetailService.GetByInvoiceIdAsync(id);
             ViewBag.InvoiceDetails = invoiceDetails;
             ViewBag.TotalAmount = await _invoiceDetailService.GetTotalAmountByInvoiceIdAsync(id);
+            ViewBag.AuditLogs = await _orderAuditService.GetLogsByInvoiceIdAsync(id);
 
             return View(invoice);
         }

@@ -71,5 +71,8 @@ namespace MyProject.Areas.Admin.Models
         // Navigation properties
         [ForeignKey("InvoiceId")]
         public virtual MyProject.Areas.User.Models.Invoice? Invoice { get; set; }
+
+        [ForeignKey("ChangedByUserId")]
+        public virtual User? User { get; set; }
     }
 }

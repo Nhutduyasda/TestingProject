@@ -1,0 +1,98 @@
+@model IEnumerable<MyProject.Areas.User.Models.ProductReview>
+
+@{
+    ViewData["Title"] = "Quản lý đánh giá";
+}
+
+<div class="p-6 bg-white rounded-lg shadow-sm dark:bg-gray-800">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Quản lý đánh giá sản phẩm</h1>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="text-sm text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400">
+                    <th class="px-4 py-3 font-medium">Sản phẩm</th>
+                    <th class="px-4 py-3 font-medium">Người dùng</th>
+                    <th class="px-4 py-3 font-medium">Đánh giá</th>
+                    <th class="px-4 py-3 font-medium">Nội dung</th>
+                    <th class="px-4 py-3 font-medium">Ngày tạo</th>
+                    <th class="px-4 py-3 font-medium">Trạng thái</th>
+                    <th class="px-4 py-3 font-medium text-right">Hành động</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                @foreach (var item in Model)
+                {
+                    <tr class="text-sm text-gray-700 dark:text-gray-300">
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-3">
+                                @if (item.Product?.Images?.Any() == true)
+                                {
+                                    <img src="@item.Product.Images.First().ImageUrl" alt="" class="object-cover w-10 h-10 rounded" />
+                                }
+                                <span class="font-medium">@item.Product?.ProductName</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            @item.User?.FullName
+                            <div class="text-xs text-gray-500">@item.User?.Email</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex text-yellow-400">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= item.Rating)
+                                    {
+                                        <i class="fas fa-star"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="far fa-star text-gray-300 dark:text-gray-600"></i>
+                                    }
+                                }
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <p class="line-clamp-2" title="@item.Comment">@item.Comment</p>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                        </td>
+                        <td class="px-4 py-3">
+                            @if (item.IsApproved)
+                            {
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                                    Đã duyệt
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
+                                    Chờ duyệt
+                                </span>
+                            }
+                        </td>
+                        <td class="px-4 py-3 text-right whitespace-nowrap">
+                            <div class="flex items-center justify-end gap-2">
+                                <form asp-action="ToggleApproval" asp-route-id="@item.ReviewId" method="post" class="inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="p-2 text-gray-400 transition-colors hover:text-brand-600" title="@(item.IsApproved ? "Ẩn đánh giá" : "Duyệt đánh giá")">
+                                        <i class="fas @(item.IsApproved ? "fa-eye-slash" : "fa-check")"></i>
+                                    </button>
+                                </form>
+                                <form asp-action="Delete" asp-route-id="@item.ReviewId" method="post" class="inline" onsubmit="return confirm('Bạn có chắc muốn xóa đánh giá này?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="p-2 text-gray-400 transition-colors hover:text-red-600" title="Xóa">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

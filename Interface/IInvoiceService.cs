@@ -10,7 +10,7 @@ namespace MyProject.Interface
         Task Add(Invoice invoice);
         Task Update(Invoice invoice);
         Task Delete(int id);
-        Task<Invoice> CreateFromCartAsync(int cartId, PayMethod? payMethod);
+        Task<Invoice> CreateFromCartAsync(int cartId, PayMethod? payMethod, string recipientName, string phoneNumber, string address, string? note, List<int>? selectedCartDetailIds = null);
         Task RecalculateTotalAsync(int invoiceId);
         
         // Order workflow methods
